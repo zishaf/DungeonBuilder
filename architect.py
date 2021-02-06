@@ -101,12 +101,12 @@ def corridor_between(
     left, right, up, down = (startx - 1, starty), (startx + 1, starty), (startx, starty - 1), (startx, starty + 1)
 
     if starty == endy and abs(startx-endx) > 2:
-        choices.append(left)
-        choices.append(right)
-
-    if startx == endx and abs(starty-endy) > 2:
         choices.append(up)
         choices.append(down)
+
+    if startx == endx and abs(starty-endy) > 2:
+        choices.append(left)
+        choices.append(right)
 
     if endx < startx: choices.append(left)
     if endx > startx: choices.append(right)
