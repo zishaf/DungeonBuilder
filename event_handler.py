@@ -101,6 +101,9 @@ class EventHandler(tcod.event.EventDispatch[None]):
         if msg is not None:
             self.message_log.add_message(msg, fg = (125,125,125))
 
+        #reset display to remove old filled corridors
+        self.filled = []
+
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown):
         #either store the mouse coordinates, or draw a new corridor with stored and new coords
         mb = event.button
@@ -113,6 +116,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
                 architect.corridor_between(self.game_map, self.x1, self.y1, x2, y2)
                 self.click_loaded = False
                 self.message_log.add_message(f"Made a corridor from ({self.x1},{self.y1}) to ({x2},{y2})", fg = (125,125,125))
+                self.filled = []
             else:
                 self.x1, self.y1 = x2, y2
                 self.click_loaded = True
@@ -134,7 +138,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
 
         for fill in self.filled:
             for x, y in fill:
-                self.console.tiles_rgb[x, y] = (ord("!"), (50,50,50),(0,0,0))
+                self.console.tiles_rgb[x, y] = (ord("!"), (255, 153, 153),(0,0,0))
 
     def render_settings(self):
         y_offset = self.game_map.height
