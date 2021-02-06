@@ -1,9 +1,9 @@
-import tcod.event
-import tcod.console
-from message_log import MessageLog
-from dungeon_features import Floor
 import architect
-import tile
+import tcod.console
+import tcod.event
+from dungeon_features import Floor
+from message_log import MessageLog
+
 
 #TODO reimagine this lamentable SETTINGS ACTIONS situation
 class Setting():

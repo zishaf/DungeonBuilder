@@ -1,7 +1,9 @@
-import numpy as np
-import tile
-import tcod.console
 import random
+
+import numpy as np
+import tcod.console
+import tile
+
 
 class Floor():
     def __init__(self, width: int, height: int):
@@ -87,6 +89,7 @@ class PyramidMaze:
         self.tiles[i + 1, i + 2:self.height - i - 2] = tile.new_tile(walkable=True, transparent=True, graphic=(ord("!"), (255, 255, 255), (0, 0, 0)))
         self.tiles[self.width - i - 2, i + 2:self.height - i - 2] = tile.new_tile(walkable=True, transparent=True, graphic=(ord("!"), (255, 255, 255), (0, 0, 0)))
         """
+
     #doesn't work
     def make_entrance(self):
         self.make_passage(-1)

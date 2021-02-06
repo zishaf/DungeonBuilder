@@ -1,7 +1,9 @@
 import random
-from dungeon_features import Floor
-import tile
 from typing import Tuple
+
+import tile
+from dungeon_features import Floor
+
 
 def smooth_it_out(floor: Floor, smoothness: int = 4):
     #converts each cell to its most common neighbor, a higher smoothness means fewer walls

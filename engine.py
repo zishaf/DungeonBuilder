@@ -1,10 +1,9 @@
 #currently out of use
 
-from architect import Floor
-import tcod
 import event_handler
+import tcod
+from architect import Floor
 from message_log import MessageLog
-
 
 
 #TODO add player, nu, and flickering halls

@@ -1,6 +1,6 @@
 import tcod
-from event_handler import EventHandler
 from dungeon_features import PyramidMaze
+from event_handler import EventHandler
 
 #copy-pasted bitwise magic, lets me resize the window
 FLAGS = tcod.context.SDL_WINDOW_RESIZABLE | tcod.context.SDL_WINDOW_MAXIMIZED

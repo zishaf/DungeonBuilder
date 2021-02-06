@@ -1,6 +1,7 @@
 from typing import Tuple
 
-import numpy as np #type: ignore
+import numpy as np  # type: ignore
+
 #TODO bug where holding space, enter, etc. doesn't continuously update console.
 #lifted and slightly edited from tutorial
 
