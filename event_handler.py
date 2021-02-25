@@ -3,6 +3,7 @@ import tcod.console
 import tcod.event
 from dungeon_features import Floor
 from message_log import MessageLog
+from typing import Callable
 
 
 #TODO reimagine this lamentable SETTINGS ACTIONS situation
