@@ -1,10 +1,15 @@
 import tcod
-from dungeon_features import PyramidMaze
+from dungeon_features import PyramidMaze, PerfectMaze
 from event_handler import EventHandler
 
 #copy-pasted bitwise magic, lets me resize the window
 FLAGS = tcod.context.SDL_WINDOW_RESIZABLE | tcod.context.SDL_WINDOW_MAXIMIZED
-WIDTH, HEIGHT = 80, 55
+WIDTH, HEIGHT = 100, 70
+
+"""
+TEST VARIABLES FOR MAZES
+"""
+maze_x, maze_y, maze_width, maze_height = 1, 1, 83, 56
 
 def main() -> None:
 
@@ -12,12 +17,12 @@ def main() -> None:
     console = tcod.Console(WIDTH, HEIGHT, order="F")
     event_handler = EventHandler(console)
 
-    #some tiles weren't loading from test tilesets, this fixes it but possibly fucks up default ibm codes
+    #some tiles weren't loading from test tilesheets, this fixes it but possibly fucks up default ibm codes
     for i in range(256):
         tileset.remap(i,i%16,int(i/16))
 
-    maze_width, maze_height = 23, 20
-    event_handler.game_map.tiles[0:maze_width,0:maze_height] = PyramidMaze(maze_width, maze_height).tiles
+    #load a maze on start for testing
+    event_handler.game_map.tiles[maze_x:maze_x+maze_width,maze_y:maze_y+maze_height] = PerfectMaze(maze_width, maze_height).tiles
 
     with tcod.context.new(
             width=WIDTH,
