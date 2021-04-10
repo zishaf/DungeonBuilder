@@ -43,6 +43,7 @@ def main() -> None:
                 context.convert_event(event)
                 event_handler.dispatch(event)
 
+
 if __name__ == "__main__":
     main()
 
