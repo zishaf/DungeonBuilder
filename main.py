@@ -15,14 +15,10 @@ def main() -> None:
 
     tileset = tcod.tileset.load_tilesheet("Anno_16x16.png", 16, 16, tcod.tileset.CHARMAP_CP437)
     console = tcod.Console(WIDTH, HEIGHT, order="F")
-    event_handler = EventHandler(console)
 
     #some tiles weren't loading from test tilesheets, this fixes it but possibly fucks up default ibm codes
     for i in range(256):
         tileset.remap(i,i%16,int(i/16))
-
-    #load a maze on start for testing
-    event_handler.game_map.tiles[maze_x:maze_x+maze_width,maze_y:maze_y+maze_height] = PerfectMaze(maze_width, maze_height).tiles
 
     with tcod.context.new(
             width=WIDTH,
@@ -33,16 +29,20 @@ def main() -> None:
             sdl_window_flags=FLAGS
     ) as context:
 
+        event_handler = EventHandler(context, console)
+
+        # load a maze on start for testing
+        event_handler.game_map.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = PerfectMaze(maze_width, maze_height).tiles
+
+        event_handler.update_console()
+
         #TODO make a good main loop (implement some delay to allow rendering? doesn't update when a key is held down with a big map)
         while True:
-            console.clear()
-            event_handler.updateConsole()
-            context.present(console)
 
             for event in tcod.event.wait():
                 context.convert_event(event)
                 event_handler.dispatch(event)
-
+                event_handler.update_console()
 
 if __name__ == "__main__":
     main()
