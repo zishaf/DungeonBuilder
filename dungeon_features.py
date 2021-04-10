@@ -33,11 +33,11 @@ class Floor():
         return self.adjacent_tiles(x, y).count(tile.wall)
 
     def can_corridor(self, x: int, y: int, blobulousness: int = 0) -> bool:
-        #can dig corridor if the tile is in bounds, is a wall, and has enough (>blobulousness) adjacent walls
+        #can dig corridor if the tile is in bounds, is a wall, and has enough adjacent walls
         #awkward calculation with blobulation because I like the var name and think it should start from 0
         return self.in_bounds(x, y) and self.tiles[x, y] == tile.wall and self.cardinal_walls(x, y) > 2 - blobulousness
 
-    # TODO refactor the choices list to avoid looping through at start
+    # TODO refactor the choices list to avoid looping through at start, i.e. tunnel intelligently
     def valid_starts(self):
         #yield statement should make a generator object, probably doesn't actually do anything with recast to list
         #valid starts are attached to existing dungeon features
