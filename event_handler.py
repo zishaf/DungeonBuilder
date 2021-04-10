@@ -3,6 +3,7 @@ import tcod.console
 import tcod.event
 from dungeon_features import Floor
 from message_log import MessageLog
+from test_functions import make_egg_map
 from typing import Callable
 
 
@@ -56,10 +57,12 @@ ACTIONS = {
 
 class EventHandler(tcod.event.EventDispatch[None]):
 
-    def __init__(self, console: tcod.console.Console):
+    def __init__(self, context, console: tcod.console.Console):
         self.message_log = MessageLog()
+        #TODO hard-coded numbers need to be made variables
         self.game_map = Floor(console.width - 15, console.height - 12)
         self.click_loaded = False
+        self.context = context
         self.console = console
 
         #tester for flood fill
@@ -76,6 +79,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
         incMult = -1 if event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT) else 1
 
         #check the action hotkeys
+        #if *, ** operators can give a function with args I can make this look like the setting loop: cleaner
         if key == tcod.event.K_ESCAPE:
             raise SystemExit()
         elif key == tcod.event.K_SPACE:
@@ -92,6 +96,9 @@ class EventHandler(tcod.event.EventDispatch[None]):
         elif key == tcod.event.K_f:
             architect.fill_caverns(self.game_map, radius=SETTINGS[5].value)
             msg = f"Filled caverns at {SETTINGS[5].value}"
+
+        elif key == tcod.event.K_p:
+            make_egg_map(self)
 
         #check if its a setting hotkey and modify value if so
         for setting in SETTINGS.values():
@@ -125,7 +132,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
         if mb is tcod.event.BUTTON_RIGHT:
             self.filled.append(architect.flood_fill(self.game_map,x2, y2))
 
-    def updateConsole(self):
+    def update_console(self):
         #render map
         self.game_map.render(self.console)
 
@@ -140,6 +147,8 @@ class EventHandler(tcod.event.EventDispatch[None]):
         for fill in self.filled:
             for x, y in fill:
                 self.console.tiles_rgb[x, y] = (ord("!"), (255, 153, 153),(0,0,0))
+
+        self.context.present(self.console)
 
     def render_settings(self):
         y_offset = self.game_map.height
