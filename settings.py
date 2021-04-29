@@ -10,11 +10,11 @@ class Setting():
         self.val = val
         self.inc = inc
 
-    def set_value(self, inc):
-        self.val += inc
-        if self.val < self.min: self.val = self.min
-        if self.val > self.max: self.val = self.max
-
+    def increment(self, negative: bool):
+        if negative:
+            self.val = max(self.min, self.val-self.inc)
+        else:
+            self.val = min(self.max, self.val+self.inc)
 """
 The Settings:
 Blobulousness - how strictly/narrowly corridors tunnel. at 0, a corridor will only tunnel to a space with 3 adjacent walls
