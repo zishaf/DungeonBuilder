@@ -1,12 +1,11 @@
 from typing import Optional, Union
 
 import actions
+import render_functions
 import settings
 import tcod.console
 import tcod.event
 from engine import Engine
-from message_log import MessageLog
-from settings import SETTINGS
 
 MAP_Y_OFFEST = 3
 MAP_X_OFFSET = 0
@@ -15,38 +14,34 @@ ActionOrHandler = Union[actions.Action, "EventHandler"]
 
 class EventHandler(tcod.event.EventDispatch[None]):
 
-    #the main event handler will hold the message log
+    #Main handler, has a log and engine (for console/context)
     def __init__(self, engine: Engine):
-        self.log = MessageLog()
         self.engine = engine
 
     def ev_quit(self, event: tcod.event.Quit):
         raise SystemExit()
 
+    #dispatch the event and perform any actions that are returned, then return the active handler
     def handle_events(self, event: tcod.event.Event) -> "EventHandler":
         action_or_state = self.dispatch(event)
+
+        #if an event handler is returned by event dispatch, set that as the handler
         if isinstance(action_or_state, EventHandler):
             return action_or_state
+
+        #if an action is returned by dispatch, perform then return self as the active handler
         if isinstance(action_or_state, actions.Action):
             action_or_state.perform(self.engine.game_map)
-            self.log.add_message(action_or_state.message)
+            self.engine.log.add_message(action_or_state.message)
+
+        #if no return type is found (unprogrammed event), return self as active handler
         return self
 
+    #event handlers' on_render will call appropriate functions from render_functions
     def on_render(self):
         self.engine.console.clear()
-        self.engine.game_map.render(self.engine.console)
 
-        self.engine.console.print(int(self.engine.game_map.width / 4), self.engine.game_map.height + 1,
-                           "Press 'I' for instructions and 'O' for settings.",
-                           fg=(200, 146, 119),
-                           alignment=tcod.CENTER)
-
-        if self.log.messages:
-            self.engine.console.print(int(self.engine.game_map.width * 3 / 4), self.engine.game_map.height + 1,
-                               self.log.messages[-1].full_text,
-                               fg=(255, 207, 102),
-                               alignment=tcod.CENTER
-                               )
+        render_functions.render_main_screen(self.engine)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         key = event.sym
@@ -54,6 +49,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
         if key == tcod.event.K_ESCAPE:
             raise SystemExit()
 
+        #if the key matches a different handler type, return that handler with self as its parent
         elif key == tcod.event.K_o:
             return SettingsHandler(parent=self)
 
@@ -91,7 +87,6 @@ class SettingsHandler(EventHandler):
     def __init__(self, parent: EventHandler):
         self.parent = parent
         self.engine = parent.engine
-        self.log = parent.log
 
     def handle_events(self, event: tcod.event.Event) -> "EventHandler":
         action_or_state = self.dispatch(event)
@@ -99,61 +94,32 @@ class SettingsHandler(EventHandler):
             return action_or_state
         return self
 
-    #TODO make it prettier (code and display)!
     def on_render(self):
-        #render the map
         super().on_render()
 
-        #draw a frame at it, 5,5 by default
-        y_offset = 5
-        self.engine.console.draw_frame(y_offset, 5,
-                                       self.engine.game_map.width - 10, self.engine.game_map.height - (2*y_offset),
-                                       "Settings", clear=True,
-                                       fg=(255,255,255), bg=(0,0,0)
-                                       )
-
-        #print instrcutions
-        self.engine.console.print(int(self.engine.game_map.width / 2), y_offset + 2,
-                           f"Use hotkeys to increment options, hold shift to decrement",
-                           fg=(0, 204, 153), alignment=tcod.constants.CENTER)
-
-        #increment offset b/c of instructions line, then loop through settings and print them
-        y_offset += 4
-        for setting in SETTINGS:
-            name = setting
-            setting = SETTINGS[setting]
-            self.engine.console.print(int(self.engine.game_map.width / 2), y_offset,
-                               f"{name}: {round(setting.val, 2)} ({setting.min}-{setting.max})",
-                               fg=(0, 102, 204), alignment=tcod.constants.CENTER)
-            y_offset += 2
+        render_functions.render_settings(self.engine)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> "EventHandler":
         key = event.sym
-
-        #if shift is held, we decrement the setting instead
-        incMult = -1 if event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT) else 1
 
         #check settings against hotkeys
         for setting in settings.SETTINGS.values():
 
             if key == setting.hotkey:
-                #increment the matching setting
-                setting.set_value(setting.inc * incMult)
+                #increment the matching setting, passing negative parameter as TRUE if a shift key is held
+                setting.increment(negative=event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT))
 
-        #make the parent handler again on escape
+        #make the parent handler again on escape key
         if key == tcod.event.K_ESCAPE:
             return self.parent
 
         return self
-
-
 
 class InstructionsHandler(EventHandler):
 
     def __init__(self, parent: EventHandler):
         self.parent = parent
         self.engine = parent.engine
-        self.log = parent.log
 
     def handle_events(self, event: tcod.event.Event) -> "EventHandler":
         action_or_state = self.dispatch(event)
@@ -164,16 +130,7 @@ class InstructionsHandler(EventHandler):
     def on_render(self):
         super().on_render()
 
-        # draw a frame at it, 5,5 by default
-        y_offset = 5
-        self.engine.console.draw_frame(y_offset, 5,
-                                       self.engine.game_map.width - 10, self.engine.game_map.height - (2 * y_offset),
-                                       "Instructions", clear=True,
-                                       fg=(255, 255, 255), bg=(0, 0, 0)
-                                       )
-        self.engine.console.print(int(self.engine.game_map.width / 2), y_offset + 2,
-                                  f"(C) to corridor, (F) to fill caverns, (S) to smooth it out, and (R) to reset map",
-                                  fg=(0, 204, 153), alignment=tcod.constants.CENTER)
+        render_functions.render_instructions(self.engine)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> "EventHandler":
         return self.parent
