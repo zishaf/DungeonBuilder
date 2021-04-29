@@ -1,21 +1,16 @@
 import random
 
 import numpy as np
-import tcod.console
 import tcod.path
-import random
 import tile
 
 class Feature():
-    pass
-
-class Floor():
     def __init__(self, width: int, height: int):
         self.tiles = np.full((width, height), fill_value=tile.wall, order="F")
         self.width, self.height = width, height
 
     def in_bounds(self, x, y) -> bool:
-        return 0 < x < self.width-1 and 0 < y < self.height-1
+        return 0 < x < self.width - 1 and 0 < y < self.height - 1
 
     def cells_centered_on(self, x: int, y: int, r: int = 1) -> np.ndarray:
         # gets slice of floor tiles based on radius. uses min, max to avoid out of bounds tiles in one fancy line
@@ -26,12 +21,13 @@ class Floor():
         return np.count_nonzero(self.cells_centered_on(x, y, r).flatten() == tile.wall)
 
     def adjacent_tiles(self, x, y) -> np.ndarray:
-        #a list of the tiles above, below, left, and right of x and y
+        # a list of the tiles above, below, left, and right of x and y
         return [self.tiles[x - 1, y], self.tiles[x + 1, y], self.tiles[x, y - 1], self.tiles[x, y + 1]]
 
     def cardinal_walls(self, x: int, y: int) -> int:
         return self.adjacent_tiles(x, y).count(tile.wall)
 
+class Floor(Feature):
     def can_corridor(self, x: int, y: int, blobulousness: int = 0) -> bool:
         #can dig corridor if the tile is in bounds, is a wall, and has enough adjacent walls
         #awkward calculation with blobulation because I like the var name and think it should start from 0
@@ -49,6 +45,7 @@ class Floor():
     def render(self, console: tcod.console.Console):
         console.tiles_rgb[0:self.width, 0:self.height] = self.tiles["graphic"]
 
+#TODO make mazes extend Feature
 class PyramidMaze:
     def __init__(self, width: int, height: int):
         self.width, self.height = width, height
