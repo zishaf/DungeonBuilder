@@ -1,15 +1,11 @@
+import event_handler
 import tcod
-from dungeon_features import PyramidMaze, PerfectMaze
-from event_handler import EventHandler
+from dungeon_features import PerfectMaze
+from engine import Engine
 
 #copy-pasted bitwise magic, lets me resize the window
 FLAGS = tcod.context.SDL_WINDOW_RESIZABLE | tcod.context.SDL_WINDOW_MAXIMIZED
 WIDTH, HEIGHT = 100, 70
-
-"""
-TEST VARIABLES FOR MAZES
-"""
-maze_x, maze_y, maze_width, maze_height = 1, 1, 83, 56
 
 def main() -> None:
 
@@ -29,20 +25,25 @@ def main() -> None:
             sdl_window_flags=FLAGS
     ) as context:
 
-        event_handler = EventHandler(context, console)
+        engine = Engine(context, console)
+        handler = event_handler.EventHandler(engine)
 
         # load a maze on start for testing
-        event_handler.game_map.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = PerfectMaze(maze_width, maze_height).tiles
+        maze_x, maze_y, maze_width, maze_height = 1, 1, engine.game_map.width-2, engine.game_map.height-2
+        maze = PerfectMaze(maze_width, maze_height)
+        engine.game_map.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = maze.tiles
 
-        event_handler.update_console()
+        handler.on_render()
 
-        #TODO make a good main loop (implement some delay to allow rendering? doesn't update when a key is held down with a big map)
+        #TODO make a good main loop (implement some delay system for rendering?)
         while True:
 
             for event in tcod.event.wait():
                 context.convert_event(event)
-                event_handler.dispatch(event)
-                event_handler.update_console()
+                handler = handler.handle_events(event)
+                if isinstance(handler, event_handler.EventHandler):
+                    handler.on_render()
+                    context.present(console)
 
 if __name__ == "__main__":
     main()
