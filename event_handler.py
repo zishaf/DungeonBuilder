@@ -61,26 +61,27 @@ class EventHandler(tcod.event.EventDispatch[None]):
             if key == act.hotkey:
                 return act
 
-    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown):
-        """#either store the mouse coordinates, or draw a new corridor with stored and new coords
-        mb = event.button
-        x2, y2 = event.tile
-        if x2 >= self.game_map.width or y2 >= self.game_map.height:
-            return
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
+        #mb = event.button <- for future use with left/right click differences
 
-        if mb is tcod.event.BUTTON_LEFT:
-            if self.click_loaded:
-                architect.corridor_between(self.game_map, self.x1, self.y1, x2, y2)
-                self.click_loaded = False
-                self.message_log.add_message(f"Made a corridor from ({self.x1},{self.y1}) to ({x2},{y2})", fg = (125,125,125))
-                self.filled = []
-            else:
-                self.x1, self.y1 = x2, y2
-                self.click_loaded = True
+        #x, y are the locations of the click.
+        x, y = event.tile
 
-        if mb is tcod.event.BUTTON_RIGHT:
-            self.filled.append(architect.flood_fill(self.game_map,x2, y2))
-        """
+        #if not in the game map, return the handler
+        if not self.engine.game_map.in_bounds(x, y):
+            return self
+
+        #if the length is two, it is the end point. add x, y to args and make the corridor
+        if len(actions.ACTIONS["corr_between"].args) == 2:
+            actions.ACTIONS["corr_between"].add_args(x, y)
+
+            return actions.ACTIONS["corr_between"]
+
+        #otherwise it is the start point.  reset the args list to x, y
+        else:
+            actions.ACTIONS["corr_between"].args = (x, y)
+            return self
+
 
 class SettingsHandler(EventHandler):
 
@@ -133,4 +134,5 @@ class InstructionsHandler(EventHandler):
         render_functions.render_instructions(self.engine)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> "EventHandler":
-        return self.parent
+        #the escape key returns to the parent handler
+        return self.parent if event.sym == tcod.event.K_ESCAPE else self
