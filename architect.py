@@ -2,7 +2,7 @@ import random
 from typing import Tuple
 
 import tile
-from dungeon_features import Floor
+from dungeon_features import Floor, PerfectMaze, PyramidMaze
 
 def smooth_it_out(floor: Floor, smoothness: int = 4):
     #converts each cell to its most common neighbor, a higher smoothness means fewer walls
@@ -119,3 +119,13 @@ def corridor_between(
     if dest is left: startx -= 1
 
     corridor_between(floor, startx, starty, endx, endy)
+
+#TODO make different maze types available
+def make_maze(floor: Floor, width: int, height: int, x: int, y: int):
+
+    #if either of the corners is out of bounds, don't make a maze
+    if not(floor.in_bounds(x,y) and floor.in_bounds(x+width-1, y+height-1)):
+        return
+
+    maze = PerfectMaze(width, height)
+    floor.tiles[x:x + width, y:y + height] = maze.tiles
