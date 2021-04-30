@@ -62,7 +62,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
                 return act
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
-        #mb = event.button <- for future use with left/right click differences
+        mb = event.button
 
         #x, y are the locations of the click.
         x, y = event.tile
@@ -71,16 +71,30 @@ class EventHandler(tcod.event.EventDispatch[None]):
         if not self.engine.game_map.in_bounds(x, y):
             return self
 
-        #if the length is two, it is the end point. add x, y to args and make the corridor
-        if len(actions.ACTIONS["corr_between"].args) == 2:
-            actions.ACTIONS["corr_between"].add_args(x, y)
+        #on left click build a corridor
+        if mb == tcod.event.BUTTON_LEFT:
 
-            return actions.ACTIONS["corr_between"]
+            #if the length is two, it is the end point. add x, y to args and make the corridor
+            if len(actions.ACTIONS["corr_between"].args) == 2:
+                actions.ACTIONS["corr_between"].add_args(x, y)
 
-        #otherwise it is the start point.  reset the args list to x, y
-        else:
-            actions.ACTIONS["corr_between"].args = (x, y)
-            return self
+                return actions.ACTIONS["corr_between"]
+
+            #otherwise it is the start point.  reset the args list to x, y
+            else:
+                actions.ACTIONS["corr_between"].args = (x, y)
+                return self
+
+        #on right click make a maze
+        elif mb == tcod.event.BUTTON_RIGHT:
+
+            #if there are already coords associated with maze, remove them
+            if len(actions.ACTIONS["maze"].args) > 2:
+                actions.ACTIONS["maze"].remove_args(2)
+
+            #add the event coords and make the maze
+            actions.ACTIONS["maze"].add_args(x, y)
+            return actions.ACTIONS["maze"]
 
 
 class SettingsHandler(EventHandler):
