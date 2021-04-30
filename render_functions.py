@@ -1,7 +1,5 @@
 from engine import Engine
-from tcod import CENTER
-from tcod import RIGHT
-from tcod import LEFT
+from tcod import CENTER, RIGHT, LEFT
 import settings
 import colors
 
@@ -25,7 +23,6 @@ def render_main_screen(engine: Engine):
                              )
 
 def render_settings(engine: Engine):
-    # TODO make it prettier (code and display)!
 
     # draw a frame at 5,5 by default
     y_offset = 5
@@ -58,10 +55,20 @@ def render_instructions(engine: Engine):
 
     draw_center_frame(engine, y_offset, "Instructions")
 
-    engine.console.print(int(engine.game_map.width / 2), y_offset + 2,
-                              f"(C) to corridor, (F) to fill caverns, (S) to smooth it out, and (R) to reset map",
-                              fg=colors.LIGHT_GREEN, alignment=CENTER)
 
+    engine.console.print(6, y_offset + 2,
+                              f"'C' makes a random corridor.  Its length and blobulousness can be modified in settings."
+                              f"\n\nBlobulousness is how blobby a corridor is.  Higher values make more open corridors."
+                              f"\n\n\n'F' fills in the caverns with walls.  The radius can be modified in settings."
+                              f"\n\nThe cavern radius is how many squares of floor must exist between walls before filling."
+                              f"\n\n\n'S' smooths out the walls.  Smoothness can be modified in settings."
+                              f"\n\nSmoothness is the number of surrrounding walls required to make another wall."
+                              f"\n\n\n'R' resets the map.  The density of walls on reset can be modified in settings."
+                              f"\n\nDensity is the percent of tiles that will be created as walls on a reset."
+                              f"\n\n\nClicking on two tiles will make a corridor between those two tiles.",
+                              fg=colors.LIGHT_GREEN, alignment=LEFT)
+
+#TODO find good values for frame, match height of thinger
 def draw_center_frame(engine: Engine, y_offset: int, title: str):
     engine.console.draw_frame(y_offset, 5,
                               engine.game_map.width - 10, engine.game_map.height - (2 * y_offset),
