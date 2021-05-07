@@ -6,4 +6,4 @@ Press "i" after starting the program for a list of the commands currently availa
 
 Inspiration and some code (marked where applicable) has been taken from the tutorial at http://rogueliketutorials.com/tutorials/tcod/v2/
 
-Eventually, I plan to expand it in to a full-fledged game.
+Eventually, I plan to expand the project into a full-fledged game.
