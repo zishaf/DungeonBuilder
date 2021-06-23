@@ -38,7 +38,7 @@ def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler)
     for i in range(corrs):
         length = random.randint(30, 40)
         architect.random_corridor(floor, length=length)
-        render_and_sleep(.1, eng, handler)
+        render_and_sleep(.07, eng, handler)
 
     #some medium corridors
     corrs = random.randint(8, 14)
@@ -52,7 +52,7 @@ def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler)
     for i in range(corrs):
         length = random.randint(10, 20)
         architect.random_corridor(floor, length=length)
-        render_and_sleep(.05, eng, handler)
+        render_and_sleep(.03, eng, handler)
 
 #renders the floor then waits for t seconds
 def render_and_sleep(t: float, eng: Engine, handler: event_handler.EventHandler):
