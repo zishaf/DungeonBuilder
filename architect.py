@@ -32,9 +32,16 @@ def reset_map(floor: Floor, denseness: float = 0.5):
 
 # TODO rework random_corridor/tunnel function with stack, currently hangs on hard-to-find tunnels
 def random_corridor(floor: Floor, length: int, blobulousness: int = 0) -> bool:
-    #make a shuffled list of all possible starting points and tries to make corridors
+    #make a list of all possible starting points and shuffle it
     starts = list(floor.valid_starts())
     random.shuffle(starts)
+
+    # Shit takes too long.  faster to find easy corridors without all the overhead.  might help on long ones though
+    """candidates = []
+    #selective flood fill will cull the starts with trying_corridor down to spacious candidates
+    for x, y in starts:
+        if len(flood_fill(floor, x, y, trying_corridor=starts)) > 3 * length:
+            candidates.append((x, y))"""
 
     #try to tunnel a corridor with length-1 since x,y will be the first tile.
     while starts:
@@ -70,7 +77,14 @@ def tunnel(floor: Floor, length: int, x: int, y: int, blobulousness: int = 0) ->
 
     return False
 
-def flood_fill(floor:Floor, x: int, y: int, tile_type = None) -> list[Tuple[int, int]]:
+def smart_tunnel(floor: Floor, length: int, b: int) -> bool:
+    #find starting point
+    pass
+
+    #while length is not 0 and you can corridor: corridor!
+
+#TODO make it a scan line fill so it's faster!
+def flood_fill(floor:Floor, x: int, y: int, tile_type = None, trying_corridor: list = []) -> list[Tuple[int, int]]:
     #flood fill will default to look for its starting tile if no value is given
     if tile_type is None: tile_type = floor.tiles[x, y]
 
@@ -82,9 +96,16 @@ def flood_fill(floor:Floor, x: int, y: int, tile_type = None) -> list[Tuple[int,
     while stack:
         x, y = stack.pop()
         if floor.in_bounds(x, y) and floor.tiles[x, y] == tile_type and (x, y) not in filled:
-            #if it passes, mark it and add all its neighbors to the stack for checking
-            filled.append((x, y))
-            stack.extend([(x-1, y), (x+1, y), (x, y-1), (x,y+1)])
+
+            # trying_corridor is a list of potential starts to find corridor candidates
+            # first we remove the original tiles and any others in the same fill from the candidates
+            if (x, y) in trying_corridor:
+                trying_corridor.remove((x, y))
+
+            if (not trying_corridor) or floor.cardinal_walls(x,y) >= 3:
+                #if we're not trying to corridor or it can corridor, mark it and add its neighbors to the stack
+                filled.append((x, y))
+                stack.extend([(x-1, y), (x+1, y), (x, y-1), (x,y+1)])
 
     return filled
 
