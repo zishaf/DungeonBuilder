@@ -1,7 +1,6 @@
 #in game settings with their default and increments
 from tcod import event
 
-
 class Setting():
     def __init__(self, hotkey, min, max, val, inc):
         self.hotkey = hotkey
