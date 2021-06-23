@@ -65,7 +65,9 @@ def render_instructions(engine: Engine):
                               f"\n\nSmoothness is the number of surrrounding walls required to make another wall."
                               f"\n\n\n'R' resets the map.  The density of walls on reset can be modified in settings."
                               f"\n\nDensity is the percent of tiles that will be created as walls on a reset."
-                              f"\n\n\nClicking on two tiles will make a corridor between those two tiles.",
+                              f"\n\n\nLeft clicking on two tiles will make a corridor between those two tiles."
+                              f"\n\n\nRight clicking on a tile will make a maze with the top left corner at that point."
+                              f"\n\nThe maze's width and height can be modified in settings.",
                               fg=colors.LIGHT_GREEN, alignment=LEFT)
 
 #TODO find good values for frame, match height of thinger
