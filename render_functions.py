@@ -67,7 +67,8 @@ def render_instructions(engine: Engine):
                               f"\n\nDensity is the percent of tiles that will be created as walls on a reset."
                               f"\n\n\nLeft clicking on two tiles will make a corridor between those two tiles."
                               f"\n\n\nRight clicking on a tile will make a maze with the top left corner at that point."
-                              f"\n\nThe maze's width and height can be modified in settings.",
+                              f"\n\nThe maze's width and height can be modified in settings."
+                              f"\n\n\nPress space to make a randomized 'egg map'",
                               fg=colors.LIGHT_GREEN, alignment=LEFT)
 
 #TODO find good values for frame, match height of thinger
