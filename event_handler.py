@@ -5,7 +5,7 @@ import render_functions
 import settings
 import tcod.console
 import tcod.event
-from test_functions import make_egg_map
+from test_functions import make_egg_map, random_floor
 from engine import Engine
 
 MAP_Y_OFFEST = 3
@@ -59,6 +59,9 @@ class EventHandler(tcod.event.EventDispatch[None]):
 
         elif key == tcod.event.K_SPACE:
             make_egg_map(self.engine.game_map, self.engine, self)
+
+        elif key == tcod.event.K_RETURN:
+            random_floor(self.engine.game_map)
 
         #checks if the key pressed matches a command's hotkey, and performs it if so
         for act in actions.ACTIONS.values():

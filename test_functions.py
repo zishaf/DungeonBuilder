@@ -8,7 +8,7 @@ import tile
 import time
 import event_handler
 
-from dungeon_features import Floor
+from dungeon_features import Floor, PerfectMaze, PyramidMaze
 from engine import Engine
 
 if TYPE_CHECKING:
@@ -53,6 +53,38 @@ def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler)
         length = random.randint(10, 20)
         architect.random_corridor(floor, length=length)
         render_and_sleep(.03, eng, handler)
+
+def random_floor(floor: Floor):
+    #reset floor with denseness between .2 and .8
+    architect.reset_map(floor, float(random.randint(3,7)/10))
+
+    #randomly decide smoothness level and how many times to smooth the floor
+    smoothing_passes, smoothness = random.randint(2, 5), random.randint(4,6)
+    for i in range(smoothing_passes):
+        architect.smooth_it_out(floor, smoothness)
+
+    #make between 1 and 3 mazes
+    mazes = random.randint(1,3)
+    for i in range(mazes):
+        #randomly determine maze start and size
+        searching = True
+        maze_x, maze_y, maze_width, maze_height = 0,0,0,0
+
+        #TODO fiddle with ranges, allow larger but make sure there's enough room to build all mazes and no overlap
+        while searching:
+            maze_x, maze_y = random.randint(1, floor.width-2), random.randint(1, floor.height-2)
+            maze_width, maze_height = random.randint(10, 30), random.randint(10,30)
+            if  maze_x + maze_width < floor.width - 2 and maze_y + maze_height < floor.height - 2:
+                searching = False
+
+        #50/50 of making pyramid maze vs perfect maze
+        if random.random() <.5:
+            maze = PerfectMaze(maze_width, maze_height)
+            floor.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = maze.tiles
+        else:
+            maze = PyramidMaze(maze_width, maze_height)
+            floor.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = maze.tiles
+
 
 #renders the floor then waits for t seconds
 def render_and_sleep(t: float, eng: Engine, handler: event_handler.EventHandler):
