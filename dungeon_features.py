@@ -44,11 +44,10 @@ class Floor(Feature):
     def render(self, console: tcod.console.Console):
         console.tiles_rgb[0:self.width, 0:self.height] = self.tiles["graphic"]
 
-#TODO make mazes extend Feature
-class PyramidMaze:
+
+class PyramidMaze(Feature):
     def __init__(self, width: int, height: int):
-        self.width, self.height = width, height
-        self.tiles = np.full((width, height), fill_value=tile.wall, order="F")
+        super().__init__(width, height)
         self.carve()
 
     def carve(self):
@@ -83,7 +82,7 @@ class PyramidMaze:
                 else:
                     choice -= (len(wall))
 
-class PerfectMaze:
+class PerfectMaze(Feature):
     def __init__(self, width: int, height: int):
         self.width, self.height = width, height
         self.tiles = np.full((width, height), fill_value=tile.floor, order="F")
@@ -154,6 +153,7 @@ class PerfectMaze:
     def in_bounds(self, x, y) -> bool:
         return 0 < x < self.width-1 and 0 < y < self.height-1
 
+    #any 2x2 of floor tiles should have one corner filled to make good, claustrophobic hallways
     def clean_2x2(self):
         for x in range(1, self.width-1):
             for y in range(1, self.height-1):
