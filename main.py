@@ -1,6 +1,7 @@
 import event_handler
 import tcod
 from dungeon_features import PerfectMaze
+from architect import make_maze
 from engine import Engine
 
 #copy-pasted bitwise magic, lets me resize the window
@@ -30,8 +31,7 @@ def main() -> None:
 
         # load a maze on start for testing
         maze_x, maze_y, maze_width, maze_height = 1, 1, engine.game_map.width-2, engine.game_map.height-2
-        maze = PerfectMaze(maze_width, maze_height)
-        engine.game_map.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = maze.tiles
+        make_maze(engine.game_map, maze_width, maze_height, maze_x, maze_y)
 
         handler.on_render()
 
