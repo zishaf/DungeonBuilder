@@ -84,28 +84,21 @@ def smart_tunnel(floor: Floor, length: int, b: int) -> bool:
     #while length is not 0 and you can corridor: corridor!
 
 #TODO make it a scan line fill so it's faster!
-def flood_fill(floor:Floor, x: int, y: int, tile_type = None, trying_corridor: list = []) -> list[Tuple[int, int]]:
+def flood_fill_floor(floor:Floor, x: int, y: int,) -> set[Tuple[int, int]]:
     #flood fill will default to look for its starting tile if no value is given
-    if tile_type is None: tile_type = floor.tiles[x, y]
+    #if tile_type is None: tile_type = floor.tiles[x, y]
 
     #will call flood_fill on a tiles in the stack and add them to filled
     stack: list(Tuple[int, int]) = [(x, y)]
-    filled: list(Tuple[int, int]) = []
+    filled: set(Tuple[int, int]) = set()
 
     #check all elements to see if they are in bounds, unmarked, and the right type
     while stack:
         x, y = stack.pop()
-        if floor.in_bounds(x, y) and floor.tiles[x, y] == tile_type and (x, y) not in filled:
+        if floor.tiles[x, y] == tile.floor and (x, y) not in filled:
 
-            # trying_corridor is a list of potential starts to find corridor candidates
-            # first we remove the original tiles and any others in the same fill from the candidates
-            if (x, y) in trying_corridor:
-                trying_corridor.remove((x, y))
-
-            if (not trying_corridor) or floor.cardinal_walls(x,y) >= 3:
-                #if we're not trying to corridor or it can corridor, mark it and add its neighbors to the stack
-                filled.append((x, y))
-                stack.extend([(x-1, y), (x+1, y), (x, y-1), (x,y+1)])
+            filled.add((x, y))
+            stack.extend([(x-1, y), (x+1, y), (x, y-1), (x,y+1)])
 
     return filled
 
