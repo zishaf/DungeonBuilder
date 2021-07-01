@@ -1,16 +1,22 @@
 from typing import Optional, Union
 
 import actions
+import architect
 import render_functions
 import settings
 import tcod.console
 import tcod.event
+import tile
+import time
 from test_functions import make_egg_map, random_floor
 from engine import Engine
+
+from tile import filled
 
 MAP_Y_OFFEST = 3
 MAP_X_OFFSET = 0
 
+#ActionOrHandler return structure lifted from http://rogueliketutorials.com/tutorials/tcod/v2/
 ActionOrHandler = Union[actions.Action, "EventHandler"]
 
 class EventHandler(tcod.event.EventDispatch[None]):
@@ -103,6 +109,16 @@ class EventHandler(tcod.event.EventDispatch[None]):
             actions.ACTIONS["maze"].add_args(x, y)
             return actions.ACTIONS["maze"]
 
+        elif mb == tcod.event.BUTTON_MIDDLE:
+            tic = time.perf_counter()
+
+            filled_tiles = architect.flood_fill_floor(self.engine.game_map, x, y)
+            for x, y in filled_tiles:
+                self.engine.game_map.tiles[x, y] = tile.filled
+
+            toc = time.perf_counter()
+
+            print(f"Filled in {toc - tic:0.4f} seconds")
 
 class SettingsHandler(EventHandler):
 
@@ -110,6 +126,7 @@ class SettingsHandler(EventHandler):
         self.parent = parent
         self.engine = parent.engine
 
+    #will return a new event handler if we leave settings screen, else self
     def handle_events(self, event: tcod.event.Event) -> "EventHandler":
         action_or_state = self.dispatch(event)
         if isinstance(action_or_state, EventHandler):
