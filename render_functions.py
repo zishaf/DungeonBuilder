@@ -71,7 +71,6 @@ def render_instructions(engine: Engine):
                               f"\n\n\nPress space to make a randomized 'egg map'",
                               fg=colors.LIGHT_GREEN, alignment=LEFT)
 
-#TODO find good values for frame, match height of thinger
 def draw_center_frame(engine: Engine, y_offset: int, title: str):
     engine.console.draw_frame(y_offset, 5,
                               engine.game_map.width - 10, engine.game_map.height - (2 * y_offset),
