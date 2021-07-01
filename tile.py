@@ -46,3 +46,10 @@ wall = new_tile(
     cost=0,
     graphic=(127, colors.CRYSTAL, colors.DARK_GREY)
 )
+
+filled = new_tile(
+    walkable=False,
+    transparent=True,
+    cost=1,
+    graphic=(3, colors.WHITE, colors.BLACK)
+)
