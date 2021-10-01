@@ -8,7 +8,7 @@ import tcod.console
 import tcod.event
 import tile
 import time
-from test_functions import make_egg_map, random_floor
+from test_functions import make_egg_map, random_floor, make_cavern_map
 from engine import Engine
 
 from tile import filled
@@ -67,7 +67,7 @@ class EventHandler(tcod.event.EventDispatch[None]):
             make_egg_map(self.engine.game_map, self.engine, self)
 
         elif key == tcod.event.K_RETURN:
-            random_floor(self.engine.game_map)
+            make_cavern_map(self.engine.game_map, 0.5, 5, 7, self.engine, self)
 
         #checks if the key pressed matches a command's hotkey, and performs it if so
         for act in actions.ACTIONS.values():
