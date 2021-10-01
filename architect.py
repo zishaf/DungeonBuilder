@@ -4,7 +4,7 @@ from typing import Tuple
 import tile
 from dungeon_features import Floor, PerfectMaze, PyramidMaze
 
-def smooth_it_out(floor: Floor, smoothness: int = 4):
+def smooth_it_out(floor: Floor, smoothness: int = 5):
     #converts each cell to its most common neighbor, a higher smoothness means fewer walls
     new_floor = floor.tiles.copy(order = "F")
 
@@ -84,24 +84,28 @@ def smart_tunnel(floor: Floor, length: int, b: int) -> bool:
     #while length is not 0 and you can corridor: corridor!
 
 #TODO make it a scan line fill so it's faster!
-def flood_fill_floor(floor:Floor, x: int, y: int,) -> set[Tuple[int, int]]:
+def flood_fill_floor(floor:Floor, x: int, y: int,) -> (tuple[Tuple[int, int]], tuple[Tuple[int, int]]):
     #flood fill will default to look for its starting tile if no value is given
     #if tile_type is None: tile_type = floor.tiles[x, y]
 
     #will call flood_fill on a tiles in the stack and add them to filled
     stack: list(Tuple[int, int]) = [(x, y)]
     filled: set(Tuple[int, int]) = set()
+    boundaries: set(Tuple[int, int]) = set()
 
-    #check all elements to see if they are in bounds, unmarked, and the right type
+    #check coords to see if they are unmarked floors, if it's a wall it's a boundry and stored seperately
     while stack:
         x, y = stack.pop()
-        if floor.tiles[x, y] == tile.floor and (x, y) not in filled:
+        if floor.tiles[x, y] == tile.wall:
+            boundaries.add((x, y))
 
+        elif (x, y) not in filled:
             filled.add((x, y))
             stack.extend([(x-1, y), (x+1, y), (x, y-1), (x,y+1)])
 
-    return filled
+    return (tuple(filled), tuple(boundaries))
 
+#TODO out of bounds check needed
 def corridor_between(
         floor: Floor, startx: int, starty: int, endx: int, endy: int
 ):
@@ -134,6 +138,10 @@ def corridor_between(
 
     corridor_between(floor, startx, starty, endx, endy)
 
+#returns the coordinates (in order) above, right, below, and left of the given coordinates
+def cardinal_coords(x, y) -> list[Tuple[int, int]]:
+    return [(x, y+1), (x+1, y), (x, y-1), (x-1, y)]
+
 #TODO make different maze types available
 def make_maze(floor: Floor, width: int, height: int, x: int, y: int):
 
@@ -143,3 +151,69 @@ def make_maze(floor: Floor, width: int, height: int, x: int, y: int):
 
     maze = PerfectMaze(width, height)
     floor.tiles[x:x + width, y:y + height] = maze.tiles
+
+def floor_segments(floor: Floor) -> (set[tuple[Tuple[int, int]]], set[tuple[Tuple[int, int]]]):
+    segments = set()
+    boundaries = set()
+
+    for x in range (1, floor.width-1):
+        for y in range (1, floor.height-1):
+            if floor.tiles[x, y] == tile.floor and not segments_contain(segments, x, y):
+                (floors, walls) = flood_fill_floor(floor, x, y)
+                segments.add(floors)
+                boundaries.add(walls)
+    return (segments, boundaries)
+
+def segments_contain(segments: set[tuple[Tuple[int, int]]], x: int, y: int) -> bool:
+    for segment in segments:
+        if (x, y) in segment:
+            return True
+    return False
+
+#The function only works if it's lucky, otherwise it hangs, consider helping it find its destination instead of pure
+#random walking
+"""
+def random_walk_between(floor: Floor, x1 : int, y1 : int, x2 : int, y2 :int) -> bool:
+    #random walk can't start on a floor tile or be length 1
+    if floor.tiles[x1, y1] == tile.floor or (x1 == x2 and y1 == y2):
+        return False
+
+    #the walked tiles list contains each visited coordinate, we have a list of lists to track directions we can try from
+    #each walked tile
+    walked_tiles: list(Tuple[int, int]) = [(x1, y1)]
+    untried_directions: list(list(int)) = [[0, 1, 2, 3]]
+
+    #mark the first tile as a floor
+    floor.tiles[x1, y1] = tile.floor
+
+    while walked_tiles:
+        #if there are no more available directions for this tile, remove it from our walk and reset it to wall
+        if len(untried_directions[-1]) == 0:
+            undo_x, undo_y = walked_tiles.pop()
+            floor.tiles[undo_x, undo_y] = tile.wall
+            untried_directions.pop()
+            continue
+
+        #find our current coordinates and their neighbors (possible_dests)
+        cur_x, cur_y = walked_tiles[-1]
+        possible_dests = cardinal_coords(cur_x, cur_y)
+
+        #randomly choose a direction, find corresponding destination, then adjust possible directions for future
+        chosen_direction = random.choice(untried_directions[-1])
+        untried_directions[-1].remove(chosen_direction)
+        dest_x, dest_y = possible_dests[chosen_direction]
+
+        #if we've reached the final destination, mark it as a floor and break
+        if dest_x == x2 and dest_y == y2:
+            floor.tiles[dest_x, dest_y] = tile.floor
+            break
+
+        #otherwise, if the tile is in bounds, a wall, and surrounded by walls, walk there
+        if floor.can_corridor(dest_x, dest_y):
+            #mark it a floor, add it to the list of walked tiles, and all 4 directions as possibilities
+            floor.tiles[dest_x, dest_y] = tile.floor
+            walked_tiles.append((dest_x, dest_y))
+            untried_directions.append([0,1,2,3])
+
+    return True if walked_tiles else False
+"""
