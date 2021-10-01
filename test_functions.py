@@ -122,3 +122,34 @@ def render_and_sleep(t: float, eng: Engine, handler: event_handler.EventHandler)
     handler.on_render()
     eng.context.present(eng.console)
     time.sleep(t)
+
+def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int, eng: Engine, handler: event_handler.EventHandler):
+    #initialize the caverns
+    architect.reset_map(floor, denseness)
+    for i in range(passes):
+        architect.smooth_it_out(floor, smoothness)
+        render_and_sleep(.1, eng, handler)
+
+    #find the floor segments and walls surrounding them
+    (floor_segments, boundaries) = architect.floor_segments(floor)
+
+    to_remove = set()
+    for segment in floor_segments:
+        if len(segment) < floor.width*floor.height/100:
+            to_remove.add(segment)
+
+    for remove in to_remove:
+        for (x, y) in remove:
+            floor.tiles[x, y] = tile.wall
+        floor_segments.remove(remove)
+        render_and_sleep(.5, eng, handler)
+
+    floor_segments = tuple(floor_segments)
+
+    for i in range(len(floor_segments) - 1):
+        (startx, starty) = random.choice(floor_segments[i])
+        (endx, endy) = random.choice(floor_segments[i+1])
+        architect.corridor_between(floor, startx, starty, endx, endy)
+        render_and_sleep(.5, eng, handler)
+
+    architect.fill_caverns(floor, 3)
