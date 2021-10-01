@@ -1,8 +1,10 @@
 import event_handler
 import tcod
-from dungeon_features import PerfectMaze
-from architect import make_maze
 from engine import Engine
+
+#imports for testing purposes
+from test_functions import make_cavern_map
+from architect import make_maze, floor_segments
 
 #copy-pasted bitwise magic, lets me resize the window
 FLAGS = tcod.context.SDL_WINDOW_RESIZABLE | tcod.context.SDL_WINDOW_MAXIMIZED
@@ -15,7 +17,7 @@ def main() -> None:
 
     #some tiles weren't loading from test tilesheets, this fixes it but possibly fucks up default ibm codes
     for i in range(256):
-        tileset.remap(i,i%16,int(i/16))
+        tileset.remap(i, i%16, int(i/16))
 
     with tcod.context.new(
             width=WIDTH,
@@ -29,9 +31,11 @@ def main() -> None:
         engine = Engine(context, console)
         handler = event_handler.EventHandler(engine)
 
-        # load a maze on start for testing
+        make_cavern_map(engine.game_map, 0.5, 5, 10, engine, handler)
+        """# load a maze on start for testing
         maze_x, maze_y, maze_width, maze_height = 1, 1, engine.game_map.width-2, engine.game_map.height-2
-        make_maze(engine.game_map, maze_width, maze_height, maze_x, maze_y)
+        make_maze(engine.game_map, maze_width, maze_height, maze_x, maze_y)"""
+
 
         handler.on_render()
 
