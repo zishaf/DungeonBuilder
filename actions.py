@@ -4,6 +4,7 @@ from dungeon_features import Floor
 from settings import SETTINGS
 from tcod import event
 
+# TODO Burn this abomination an use the map function
 class Action():
     def __init__(self, hotkey, message, func, *settings):
         self.hotkey = hotkey
@@ -38,7 +39,7 @@ ACTIONS = {
                            SETTINGS["(F)ill Radius"]),
     "reset":        Action(event.K_r, "Reset map",      architect.reset_map,
                            SETTINGS["(D)enseness"]),
-    "corridor":     Action(event.K_c, "Made corridor",  architect.random_corridor,
+    "corridor":     Action(event.K_c, "Made corridor",  architect.fast_corridor,
                            SETTINGS["Corridor (L)ength"], SETTINGS["(B)lobulousness"]),
     "corr_between": Action(event.BUTTON_LEFT, "Custom corridor", architect.corridor_between,
                             ),
