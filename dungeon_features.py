@@ -33,6 +33,7 @@ class Floor(Feature):
         #awkward calculation with blobulation because I like the var name and think it should start from 0
         return self.in_bounds(x, y) and self.tiles[x, y] == tile.wall and self.cardinal_walls(x, y) > 2 - blobulousness
 
+    #TODO can make yield actually valuable by shuffling a list of x's and y's in range 1-width/height then looping
     def valid_starts(self):
         #yield statement should make a generator object, probably doesn't actually do anything with recast to list
         #valid starts are attached to existing dungeon features
@@ -112,6 +113,7 @@ class PerfectMaze(Feature):
                 self.tiles[x, y] = tile.wall
                 choices.extend([(x+1, y, 2),(x-1, y, 4),(x,y+1, 3),(x,y-1, 1)])
 
+    #TODO rewooooooork
     def add_entrances(self):
         wall_one_choices = []
         wall_two_choices = []
