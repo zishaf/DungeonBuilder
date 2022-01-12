@@ -4,7 +4,7 @@ from engine import Engine
 
 #imports for testing purposes
 from test_functions import make_cavern_map
-from architect import make_maze, floor_segments
+from architect import make_maze, floor_segments, max_histogram, find_rectangle, reset_map
 
 #copy-pasted bitwise magic, lets me resize the window
 FLAGS = tcod.context.SDL_WINDOW_RESIZABLE | tcod.context.SDL_WINDOW_MAXIMIZED
@@ -31,11 +31,12 @@ def main() -> None:
         engine = Engine(context, console)
         handler = event_handler.EventHandler(engine)
 
-        make_cavern_map(engine.game_map, 0.5, 5, 10, engine, handler)
-        """# load a maze on start for testing
+        #make_cavern_map(engine.game_map, 0.5, 5, 10, engine, handler)
+        # load a maze on start for testing
+        """
         maze_x, maze_y, maze_width, maze_height = 1, 1, engine.game_map.width-2, engine.game_map.height-2
-        make_maze(engine.game_map, maze_width, maze_height, maze_x, maze_y)"""
-
+        make_maze(engine.game_map, maze_width, maze_height, maze_x, maze_y)
+        """
 
         handler.on_render()
 
