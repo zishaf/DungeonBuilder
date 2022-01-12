@@ -90,6 +90,8 @@ def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler)
         render_and_sleep(.01, eng, handler)
 
 
+    #TODO ensure floor is linked using flood fill
+
 def random_floor(floor: Floor):
     #reset floor with denseness between .2 and .8
     architect.reset_map(floor, float(random.randint(3,7)/10))
@@ -125,6 +127,22 @@ def render_and_sleep(t: float, eng: Engine, handler: event_handler.EventHandler)
     eng.context.present(eng.console)
     time.sleep(t)
 
+
+#resets the map, makes a bunch of corridors, and times it
+def test_corridor_times(floor: Floor, density: float, smoothness: int, length: int, corridors: int):
+    architect.reset_map(floor, density)
+
+    for i in range(5):
+        architect.smooth_it_out(floor, smoothness)
+
+    tic = time.perf_counter()
+
+    for i in range(corridors):
+        architect.fast_corridor(floor, length)
+
+    toc = time.perf_counter()
+
+    print(f"average is {(toc - tic)/corridors:0.4f} seconds")
 
 def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int, eng: Engine, handler: event_handler.EventHandler):
     #initialize the caverns
