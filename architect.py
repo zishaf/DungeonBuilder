@@ -77,12 +77,6 @@ def tunnel(floor: Floor, length: int, x: int, y: int, blobulousness: int = 0) ->
 
     return False
 
-def smart_tunnel(floor: Floor, length: int, b: int) -> bool:
-    #find starting point
-    pass
-
-    #while length is not 0 and you can corridor: corridor!
-
 #TODO make it a scan line fill so it's faster!
 def flood_fill_floor(floor:Floor, x: int, y: int,) -> (tuple[Tuple[int, int]], tuple[Tuple[int, int]]):
     #flood fill will default to look for its starting tile if no value is given
@@ -169,6 +163,87 @@ def segments_contain(segments: set[tuple[Tuple[int, int]]], x: int, y: int) -> b
         if (x, y) in segment:
             return True
     return False
+
+#TODO there's probably a clever way to update the segments/boundaries as we go and reduce future flood fill calls
+#TODO also it's double checking segments against themselves.  probably need to enumerate the nested loop
+def connect_adjacent_segments(floor: Floor) -> (set[tuple[Tuple[int, int]]], set[tuple[Tuple[int, int]]]):
+    #find the floor segments and their boundaries
+    (segments, boundaries) = floor_segments(floor)
+
+    #a nested loop to compare all segment boundaries against all others
+    for boundary_one in boundaries:
+        for boundary_two in boundaries:
+            if boundary_one == boundary_two:
+                #back to start if we're comparing someting to itself
+                continue
+            #if there's any overlap, add pick a random tile from the overlap to make the connection
+            if set(boundary_one).intersection(set(boundary_two)):
+                (x, y) = random.choice(tuple(set(boundary_one).intersection(set(boundary_two))))
+                floor.tiles[x, y] = tile.floor
+
+#TODO find recatngles of a certain area, also store max in case. Also width/height are swapped I think. Also find y
+#return x, y of top left and width, height
+def find_rectangle(floor: Floor) -> Tuple[int, int, int, int]:
+    max_x, max_y, max_width, max_height, max_area = -1, -1, -1, -1, -1
+
+    #use slices to cut off top+bottom, left+right of floor
+    inner_values = floor.tiles[1:-1, 1:-1]
+
+    # Initialize first row, 1s for walls and 0s for floors
+    histogram = []
+    for square in inner_values[0]:
+        if square == tile.wall:
+            histogram.append(1)
+        else:
+            histogram.append(0)
+
+    for i in range(1, len(inner_values)):
+        for j in range(len(inner_values[i])):
+            # if it's a wall the histogram gains one height, otherwise the height it reset to 0
+            if (inner_values[i][j]) == tile.wall:
+                histogram[j] += 1
+            else:
+                histogram[j] = 0
+
+        # Update result if area with current
+        # row (as last row) of rectangle) is more
+        (x, width, height, area) = max_histogram(histogram)
+        if area > max_area:
+            max_x, max_width, max_height, max_area = x, width, height, area
+            max_y = (i + 1) - max_height
+
+    #this is actually width, height, x, y
+    return (max_height, max_width, max_y+1, max_x+1)
+
+#return x, width, height
+def max_histogram(heights: list[int]) -> Tuple[int, int, int, int]:
+    x, max_width, max_height, max_area = -1, -1, -1, -1
+    stack = [] # pair: (index, height)
+
+    #loop through histogram
+    for i, h in enumerate(heights):
+        start = i
+        #if you encounter a taller column than the top of the stack
+        while stack and stack[-1][1] > h:
+            #measure the largest histogram from the top of the stack
+            index, height = stack.pop()
+            width = i - index
+            if height > 4 and width > 4 and (width * height) > max_area:
+                max_width, max_height, x, max_area = width, h, index, width*height
+            #update the left index
+            start = index
+        stack.append((start, h))
+
+    #all the indices that never found a taller point get measured to see if they're the largest
+    for i, h in stack:
+        width = len(heights) - i
+        if h > 4 and width > 4 and (width * h) > max_area:
+            max_width, max_height, x, max_area = width, h, i, width*h
+
+    return (x, max_width, max_height, max_area)
+
+def make_max_maze(floor: Floor):
+    make_maze(floor, *find_rectangle(floor))
 
 #The function only works if it's lucky, otherwise it hangs, consider helping it find its destination instead of pure
 #random walking
