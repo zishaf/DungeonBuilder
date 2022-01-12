@@ -100,6 +100,7 @@ class PerfectMaze(Feature):
     def add_walls(self):
         choices = []
 
+        #TODO change the directions' order to up, right, down, left
         #initial choices will be the outermost ring, excluding corners. add x, y and direction 1,2,3,4 as up,down,left,right
         for x in range(1, self.width - 1):
             choices.extend([(x,1,3),(x,self.height-2,1)])
