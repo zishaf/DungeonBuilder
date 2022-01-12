@@ -30,7 +30,59 @@ def reset_map(floor: Floor, denseness: float = 0.5):
         for y in range (1, floor.height-1):
             floor.tiles[x, y] = tile.wall if random.random() < denseness else tile.floor
 
-# TODO rework random_corridor/tunnel function with stack, currently hangs on hard-to-find tunnels
+def fast_corridor(floor: Floor, length: int, blobulousness: int = 0) -> bool:
+    #make a set of possible starting points
+    starts = list(floor.valid_starts())
+    random.shuffle(starts)
+    #pop random coords as starting points and see if a corridor can be made
+    while starts:
+        #get our starting point
+        x, y = starts.pop()
+
+        # the current corridor will store the coordinates, the dests will store corresponding available directions
+        curr_corr: list(Tuple[int, int]) = [(x, y)]
+        directions: list(list()) = [[0, 1, 2, 3]]
+
+        #randomly walk until corridor is long enough or impossible
+        while curr_corr and len(curr_corr) < length:
+            x, y = curr_corr[-1]
+            # make a list of the adjacent tiles as possible destinations
+            cardinals = [(x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y)]
+
+            #if there are no more directions to try then we've reached a dead end, remove the most recent tile
+            if not directions[-1]:
+                curr_corr.pop()
+                directions.pop()
+
+            else:
+                #pop arbitrarily from the most recent direction set and compare with cardinals to set x and y destination
+                direction = random.choice(directions[-1])
+                directions[-1].remove(direction)
+                x_dest, y_dest = cardinals[direction]
+
+                #make sets from current corridor squares and adjacent tiles and finds length of overlap
+                destination_tiles = {(x_dest, y_dest+1), (x_dest+1, y_dest), (x_dest, y_dest-1), (x_dest-1, y_dest)}
+                overlapping_tiles = len(set(curr_corr) & destination_tiles)
+
+                #check that the destination is in bounds, surrounded by walls, and only touches one tile of the corridor
+                if floor.in_bounds(x_dest, y_dest) and floor.cardinal_walls(x_dest, y_dest) == 4 and overlapping_tiles == 1:
+                   #if so, we add the destination to the corridor with a fresh set of available directions
+                   curr_corr.append((x_dest, y_dest))
+                   directions.append([0, 1, 2, 3])
+                   #remove the opposite direction from possible ways this can go
+                   directions[-1].remove((direction+2)%4)
+
+        #if the corridor is long make all the tiles floors
+        if len(curr_corr) == length:
+           for x, y in curr_corr:
+               floor.tiles[x, y] = tile.floor
+           return True
+
+    #no start worked
+    return False
+
+
+       # TODO rework random_corridor/tunnel function with stack, currently hangs on hard-to-find tunnels
 def random_corridor(floor: Floor, length: int, blobulousness: int = 0) -> bool:
     #make a list of all possible starting points and shuffle it
     starts = list(floor.valid_starts())
