@@ -14,6 +14,7 @@ from engine import Engine
 if TYPE_CHECKING:
     pass
 
+
 class Egg():
     # egg is comprised of center point, width and height radiuses, and how many smoothness passes it will get
     def __init__(self, x, y, width, height, passes):
@@ -32,6 +33,7 @@ class Egg():
             if egg.bottom <= self.top <= egg.top or egg.bottom <= self.bottom <= egg.top:
                 return True
         return False
+
 
 def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler):
     #reset the map to all wall
@@ -87,6 +89,7 @@ def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler)
         architect.random_corridor(floor, length=length)
         render_and_sleep(.01, eng, handler)
 
+
 def random_floor(floor: Floor):
     #reset floor with denseness between .2 and .8
     architect.reset_map(floor, float(random.randint(3,7)/10))
@@ -116,12 +119,12 @@ def random_floor(floor: Floor):
         floor.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = maze.tiles
 
 
-
 #renders the floor then waits for t seconds
 def render_and_sleep(t: float, eng: Engine, handler: event_handler.EventHandler):
     handler.on_render()
     eng.context.present(eng.console)
     time.sleep(t)
+
 
 def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int, eng: Engine, handler: event_handler.EventHandler):
     #initialize the caverns
@@ -130,14 +133,19 @@ def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int
         architect.smooth_it_out(floor, smoothness)
         render_and_sleep(.1, eng, handler)
 
-    #find the floor segments and walls surrounding them
+    #connect adjacent floor segments
+    architect.connect_adjacent_segments(floor)
+
+    #find the new floor segments and walls surrounding them
     (floor_segments, boundaries) = architect.floor_segments(floor)
 
+    #find segments that are less than a 100th of the whole map
     to_remove = set()
     for segment in floor_segments:
         if len(segment) < floor.width*floor.height/100:
             to_remove.add(segment)
 
+    #turn the small floor segments to walls
     for remove in to_remove:
         for (x, y) in remove:
             floor.tiles[x, y] = tile.wall
@@ -146,10 +154,37 @@ def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int
 
     floor_segments = tuple(floor_segments)
 
+    #build random corridors to connect all remaining floor segments
     for i in range(len(floor_segments) - 1):
         (startx, starty) = random.choice(floor_segments[i])
         (endx, endy) = random.choice(floor_segments[i+1])
         architect.corridor_between(floor, startx, starty, endx, endy)
         render_and_sleep(.5, eng, handler)
 
-    architect.fill_caverns(floor, 3)
+    architect.fill_caverns(floor, 4)
+
+
+def make_winding_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler):
+    architect.reset_map(floor)
+    floor_changed = True
+
+    #keep smoothing out the map until it reaches static state
+    #TODO sometimes this goes infinite and smooths back and forth
+    while floor_changed:
+        prev_floor = floor.tiles.copy()
+        architect.smooth_it_out(floor)
+        render_and_sleep(.05, eng, handler)
+        if (floor.tiles == prev_floor).all():
+            floor_changed = False
+
+    #build a bunch of corridors
+    for i in range(20):
+        render_and_sleep(.05, eng, handler)
+        corr_length = random.randint(10, 21)
+        architect.random_corridor(floor, corr_length)
+
+    render_and_sleep(.2, eng, handler)
+    architect.connect_adjacent_segments(floor)
+
+    render_and_sleep(.3, eng, handler)
+    architect.fill_caverns(floor)
