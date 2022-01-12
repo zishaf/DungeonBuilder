@@ -8,7 +8,7 @@ import tcod.console
 import tcod.event
 import tile
 import time
-from test_functions import make_egg_map, random_floor, make_cavern_map
+from test_functions import make_egg_map, random_floor, make_cavern_map, make_winding_map
 from engine import Engine
 
 from tile import filled
@@ -68,6 +68,15 @@ class EventHandler(tcod.event.EventDispatch[None]):
 
         elif key == tcod.event.K_RETURN:
             make_cavern_map(self.engine.game_map, 0.5, 5, 7, self.engine, self)
+
+        elif key == tcod.event.K_k:
+            make_winding_map(self.engine.game_map, self.engine, self)
+
+        elif key == tcod.event.K_TAB:
+            architect.connect_adjacent_segments(self.engine.game_map)
+
+        elif key == tcod.event.K_h:
+            architect.make_max_maze(self.engine.game_map)
 
         #checks if the key pressed matches a command's hotkey, and performs it if so
         for act in actions.ACTIONS.values():
