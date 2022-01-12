@@ -1,7 +1,6 @@
 import architect
 import tcod
 from message_log import MessageLog
-from settings import SETTINGS
 
 #TODO add player, nu, and flickering halls
 
