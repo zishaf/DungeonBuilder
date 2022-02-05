@@ -19,9 +19,12 @@ tile_dt = np.dtype(
         ("walkable", np.bool),
         ("transparent", np.bool),
         ("cost", np.int8),
-        ("graphic", graphic_dt),
+        ("light", graphic_dt),
+        ("dark", graphic_dt),
     ]
 )
+
+SHROUD = np.array((ord(" "), (0,0,0), (20,20,20)), dtype=graphic_dt)
 
 #helper function to initialize new tiles
 def new_tile(
@@ -29,27 +32,39 @@ def new_tile(
         walkable: int,
         transparent: int,
         cost: int,
-        graphic: Tuple[int, Tuple[int, int, int], Tuple[int, int, int]],
+        light: Tuple[int, Tuple[int, int, int], Tuple[int, int, int]],
+        dark: Tuple[int, Tuple[int, int, int], Tuple[int, int, int]],
 ) -> np.ndarray:
-    return np.array((walkable, transparent, cost, graphic), dtype=tile_dt)
+    return np.array((walkable, transparent, cost, light, dark), dtype=tile_dt)
 
 floor = new_tile(
     walkable=True,
     transparent=True,
     cost=1,
-    graphic=(46, colors.GREY, colors.DARK_GREY)
+    light=(46, colors.GREY, colors.DARK_GREY),
+    dark=(46, colors.DARK_GREY, colors.BLACK)
 )
 
 wall = new_tile(
     walkable=False,
-    transparent=True,
+    transparent=False,
     cost=0,
-    graphic=(127, colors.CRYSTAL, colors.DARK_GREY)
+    light=(127, colors.CRYSTAL, colors.DARK_GREY),
+    dark=(127, colors.DARK_CRYSTAL, colors.BLACK)
 )
 
 filled = new_tile(
     walkable=False,
     transparent=True,
     cost=1,
-    graphic=(3, colors.WHITE, colors.BLACK)
+    light=(3, colors.WHITE, colors.BLACK),
+    dark=(3, colors.WHITE, colors.BLACK)
+)
+
+maze_ext = new_tile(
+    walkable=True,
+    transparent=True,
+    cost=1,
+    light=(25, colors.WHITE, colors.DARK_GREY),
+    dark=(25, colors.GREY, colors.BLACK)
 )
