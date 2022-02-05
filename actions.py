@@ -1,6 +1,5 @@
 import architect
 import settings
-from dungeon_features import Floor
 from settings import SETTINGS
 from tcod import event
 
@@ -13,8 +12,8 @@ class Action():
         self.args = settings
 
     # TODO modify messages based on args, also mazes are adding messages even when they don't draw
-    def perform(self, map: Floor):
-        params = (map,)
+    def perform(self, floor: architect.Floor):
+        params = (floor,)
         for arg in self.args:
             if isinstance(arg, settings.Setting):
                 params += (arg.val,)
