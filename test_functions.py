@@ -8,7 +8,6 @@ import tile
 import time
 import event_handler
 
-from dungeon_features import Floor, PerfectMaze, PyramidMaze
 from engine import Engine
 
 if TYPE_CHECKING:
@@ -35,7 +34,7 @@ class Egg():
         return False
 
 
-def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler):
+def make_egg_map(floor: architect.Feature, eng: Engine, handler: event_handler.MapBuildingHandler):
     #reset the map to all wall
     architect.reset_map(floor, denseness=1.0)
 
@@ -92,7 +91,7 @@ def make_egg_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler)
 
     #TODO ensure floor is linked using flood fill
 
-def random_floor(floor: Floor):
+def random_floor(floor: architect.Feature):
     #reset floor with denseness between .2 and .8
     architect.reset_map(floor, float(random.randint(3,7)/10))
 
@@ -116,20 +115,20 @@ def random_floor(floor: Floor):
                 searching = False
 
         #50/50 of making pyramid maze vs perfect maze
-        maze = PerfectMaze(maze_width, maze_height) if random.random() <.5 else PyramidMaze(maze_width, maze_height)
+        maze = architect.PerfectMaze(maze_width, maze_height) if random.random() <.5 else architect.PyramidMaze(maze_width, maze_height)
 
         floor.tiles[maze_x:maze_x + maze_width, maze_y:maze_y + maze_height] = maze.tiles
 
 
 #renders the floor then waits for t seconds
-def render_and_sleep(t: float, eng: Engine, handler: event_handler.EventHandler):
+def render_and_sleep(t: float, eng: Engine, handler: event_handler.MapBuildingHandler):
     handler.on_render()
     eng.context.present(eng.console)
     time.sleep(t)
 
 
 #resets the map, makes a bunch of corridors, and times it
-def test_corridor_times(floor: Floor, density: float, smoothness: int, length: int, corridors: int):
+def test_corridor_times(floor: architect.Feature, density: float, smoothness: int, length: int, corridors: int):
     architect.reset_map(floor, density)
 
     for i in range(5):
@@ -144,7 +143,7 @@ def test_corridor_times(floor: Floor, density: float, smoothness: int, length: i
 
     print(f"average is {(toc - tic)/corridors:0.4f} seconds")
 
-def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int, eng: Engine, handler: event_handler.EventHandler):
+def make_cavern_map(floor: architect.Feature, denseness: float, smoothness: int, passes: int, eng: Engine, handler: event_handler.MapBuildingHandler):
     #initialize the caverns
     architect.reset_map(floor, denseness)
     for i in range(passes):
@@ -182,7 +181,7 @@ def make_cavern_map(floor: Floor, denseness: float, smoothness: int, passes: int
     architect.fill_caverns(floor, 4)
 
 
-def make_winding_map(floor: Floor, eng: Engine, handler: event_handler.EventHandler):
+def make_winding_map(floor: architect.Feature, eng: Engine, handler: event_handler.MapBuildingHandler):
     architect.reset_map(floor)
     floor_changed = True
 
