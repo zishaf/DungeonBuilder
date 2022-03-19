@@ -2,23 +2,21 @@ import event_handler
 import tcod
 import random
 from engine import Engine
-from entity_maker import Player, Monster, NuPile
 
-#imports for testing purposes
-from test_functions import make_cavern_map
-from architect import make_maze, floor_segments, max_histogram, find_rectangle, reset_map
-
-#copy-pasted bitwise magic, lets me resize the window
+# copy-pasted bitwise magic, lets me resize the window
 FLAGS = tcod.context.SDL_WINDOW_RESIZABLE | tcod.context.SDL_WINDOW_MAXIMIZED
-WIDTH, HEIGHT = 100, 70
+
+# TODO There's an error when one of these two/2 returns an odd value, needs a rework
+WIDTH, HEIGHT, MAP_Y_OFFSET = 68, 52, 3
+
 
 def main() -> None:
     tileset = tcod.tileset.load_tilesheet("Anno_16x16.png", 16, 16, tcod.tileset.CHARMAP_CP437)
-    console = tcod.Console(WIDTH, HEIGHT, order="F")
+    console = tcod.Console(WIDTH, HEIGHT+MAP_Y_OFFSET, order="F")
 
-    #some tiles weren't loading from test tilesheets, this fixes it but possibly fucks up default ibm codes
+    # some tiles weren't loading from test tilesheets, this fixes it but possibly fucks up default ibm codes
     for i in range(256):
-        tileset.remap(i, i%16, int(i/16))
+        tileset.remap(i, i % 16, int(i / 16))
 
     with tcod.context.new(
             width=WIDTH,
@@ -32,24 +30,7 @@ def main() -> None:
         engine = Engine(context, console)
         handler = event_handler.MainMenuHandler(engine)
 
-        #make_cavern_map(engine.game_map, 0.5, 5, 10, engine, handler)
-        # load a maze on start for testing
-
-        """maze_x, maze_y, maze_width, maze_height = 1, 1, engine.game_map.width-2, engine.game_map.height-2
-        make_maze(engine.game_map, maze_width, maze_height, maze_x, maze_y)
-        engine.game_map.entities.append(Player(engine.game_map, 0, 0))"""
-
-        """segments, borders = floor_segments(engine.game_map)
-        floor_tiles = segments.pop()
-        for _ in range(10):
-            mon_x, mon_y = random.choice(floor_tiles)
-            if random.random() < .5:
-                engine.game_map.entities.append(NuPile(engine.game_map, mon_x, mon_y, 10))
-            else:
-                engine.game_map.entities.append(Monster(engine.game_map, mon_x, mon_y))
-        handler.on_render()"""
-
-        #TODO make a good main loop (implement some delay system for rendering?)
+        # TODO make a good main loop (implement some delay system for rendering?)
         while True:
 
             for event in tcod.event.wait():
@@ -57,7 +38,8 @@ def main() -> None:
                 handler = handler.handle_events(event)
                 if isinstance(handler, event_handler.BaseEventHandler):
                     handler.on_render()
-                    context.present(console)
+                    context.present(handler.engine.console)
+
 
 if __name__ == "__main__":
     main()
