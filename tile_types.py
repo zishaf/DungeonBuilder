@@ -3,9 +3,9 @@ import colors
 
 import numpy as np  # type: ignore
 
-#lifted and slightly edited from tutorial http://rogueliketutorials.com/tutorials/tcod/v2/
+# lifted and slightly edited from tutorial http://rogueliketutorials.com/tutorials/tcod/v2/
 
-#graphics include int reference to spot on tileset, and two sets of three bytes numbers for color
+# graphics include int reference to spot on tileset, and two sets of three bytes numbers for color
 graphic_dt = np.dtype(
     [
         ("ch", np.int32),
@@ -24,9 +24,8 @@ tile_dt = np.dtype(
     ]
 )
 
-SHROUD = np.array((ord(" "), (0,0,0), (20,20,20)), dtype=graphic_dt)
 
-#helper function to initialize new tiles
+# helper function to initialize new tiles
 def new_tile(
         *,
         walkable: int,
@@ -36,6 +35,9 @@ def new_tile(
         dark: Tuple[int, Tuple[int, int, int], Tuple[int, int, int]],
 ) -> np.ndarray:
     return np.array((walkable, transparent, cost, light, dark), dtype=tile_dt)
+
+
+SHROUD = np.array((ord(" "), (0, 0, 0), (20, 20, 20)), dtype=graphic_dt)
 
 floor = new_tile(
     walkable=True,
@@ -61,10 +63,18 @@ filled = new_tile(
     dark=(3, colors.WHITE, colors.BLACK)
 )
 
-maze_ext = new_tile(
+down_stairs = new_tile(
     walkable=True,
     transparent=True,
     cost=1,
     light=(25, colors.WHITE, colors.DARK_GREY),
     dark=(25, colors.GREY, colors.BLACK)
+)
+
+acid = new_tile(
+    walkable=True,
+    transparent=True,
+    cost=1,
+    light=(176, colors.ACID_GREEN, colors.DARK_GREY),
+    dark=(176, colors.OLIVE_GREEN, colors.BLACK)
 )
