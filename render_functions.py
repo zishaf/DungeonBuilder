@@ -21,18 +21,18 @@ def render_main_screen_player(engine: Engine):
     if player_x - WIDTH//2 < 0:
         camera_x1, camera_x2 = 0, WIDTH
     elif player_x + WIDTH//2 > engine.game_map.width:
-        camera_x1, camera_x2 = engine.game_map.width-WIDTH, engine.game_map.width
+        camera_x1, camera_x2 = engine.game_map.width - WIDTH, engine.game_map.width
     else:
-        camera_x1, camera_x2 = player_x - WIDTH//2, player_x + WIDTH//2
+        camera_x1, camera_x2 = player_x - WIDTH // 2, player_x + WIDTH // 2
         if WIDTH % 2 == 1:
             camera_x2 += 1
 
     if player_y - HEIGHT//2 < 0:
         camera_y1, camera_y2 = 0, HEIGHT
     elif player_y + HEIGHT//2 > engine.game_map.height:
-        camera_y1, camera_y2 = engine.game_map.height-HEIGHT, engine.game_map.height
+        camera_y1, camera_y2 = engine.game_map.height - HEIGHT, engine.game_map.height
     else:
-        camera_y1, camera_y2 = player_y - HEIGHT//2, player_y + HEIGHT//2
+        camera_y1, camera_y2 = player_y - HEIGHT // 2, player_y + HEIGHT // 2
         if HEIGHT % 2 == 1:
             camera_y2 += 1
 
@@ -107,8 +107,7 @@ def render_settings(engine: Engine):
         y_offset += 2
 
 
-# TODO update with all your cool new shit!
-def render_instructions(engine: Engine):
+def render_map_instructions(engine: Engine):
     # draw a frame at it, 5,5 by default
     y_offset = 5
 
@@ -127,6 +126,25 @@ def render_instructions(engine: Engine):
                          f"\n\n\nRight clicking on a tile will make a maze there."
                          f"\n\nThe maze's width and height can be modified in settings."
                          f"\n\n\nYou can also make an eg(g), wi(n)ding, or ca(v)ern map"
+                         ,
+                         fg=colors.LIGHT_GREEN, alignment=LEFT)
+
+
+def render_game_instructions(engine: Engine):
+    # draw a frame at it, 5,5 by default
+    y_offset = 5
+
+    draw_center_frame(engine, y_offset, "Instructions")
+
+    engine.console.print(6, y_offset + 2,
+                         f"Welcome to the Crystal Caves!"
+                         f"\n\n\nTry to make it to the bottom before your nu hits 0."
+                         f"\n\n\nUse the arrow keys to move."
+                         f"\n\n\nWalk over the suns to restore your Nu."
+                         f"\n\n\nPress space on a staircase to go down a floor."
+                         f"\n\n\nPress enter to exchange nu for powers and handicaps."
+                         f"\n\n\nPress 'M' to view the map."
+                         f"\n\n(and edit it if you're a cheater!)"
                          ,
                          fg=colors.LIGHT_GREEN, alignment=LEFT)
 
@@ -202,7 +220,11 @@ def render_loading_screen(engine: Engine):
 
 def render_bottom_bar_player(engine: Engine):
     # print the bottom line instuctions
-    engine.console.print(int(WIDTH / 4), HEIGHT + 1,
+    engine.console.print(1, HEIGHT + 1,
+                         f"'?' for help",
+                         fg=colors.ORANGE,
+                         alignment=LEFT)
+    engine.console.print(int(WIDTH*2/5), HEIGHT + 1,
                          f"Nu: {engine.player.nu}",
                          fg=colors.ORANGE,
                          alignment=CENTER)

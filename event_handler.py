@@ -136,9 +136,12 @@ class MapBuildingHandler(BaseEventHandler):
 
         elif key == tcod.event.K_i:
             self.engine.console = tcod.console.Console(WIDTH, HEIGHT + MAP_Y_OFFSET, order='F')
-            return InstructionsHandler(self.engine)
+            return MapInstructionsHandler(self.engine)
 
-        elif key == tcod.event.K_p and self.engine.player.x and self.engine.player.y:
+        elif key == tcod.event.K_p:
+            if not (self.engine.player.x and self.engine.player.y):
+                self.engine.place_player()
+
             self.engine.console = tcod.console.Console(WIDTH, HEIGHT + MAP_Y_OFFSET, order='F')
             self.engine.log.add_message("Welcome to the Crystal Caves", colors.CRYSTAL)
             return PlayerMoverHandler(self.engine)
@@ -232,7 +235,7 @@ class SettingsHandler(BaseEventHandler):
             return self
 
 
-class InstructionsHandler(BaseEventHandler):
+class MapInstructionsHandler(BaseEventHandler):
 
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
         action_or_state = self.dispatch(event)
@@ -241,7 +244,7 @@ class InstructionsHandler(BaseEventHandler):
         return self
 
     def on_render(self):
-        render_functions.render_instructions(self.engine)
+        render_functions.render_map_instructions(self.engine)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> "BaseEventHandler":
         # the escape key returns to the parent handler
@@ -331,6 +334,9 @@ class PlayerMoverHandler(BaseEventHandler):
         elif key == tcod.event.K_ESCAPE:
             raise SystemExit()
 
+        elif key == tcod.event.K_SLASH and (event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT)):
+            return GameInstructionsHandler(self.engine)
+
         if self.engine.player_dead():
             self.engine = engine.Engine(self.engine.context, self.engine.console)
             return GameOverEventHandler(self.engine)
@@ -364,6 +370,20 @@ class PlayerMoverHandler(BaseEventHandler):
                     self.on_render()
                     self.engine.context.present(self.engine.console)
                     time.sleep(.05)
+
+
+class GameInstructionsHandler(BaseEventHandler):
+    def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
+        action_or_state = self.dispatch(event)
+        if isinstance(action_or_state, BaseEventHandler):
+            return action_or_state
+        return self
+
+    def on_render(self):
+        render_functions.render_game_instructions(self.engine)
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> "BaseEventHandler":
+        return PlayerMoverHandler(self.engine)
 
 
 class GameOverEventHandler(BaseEventHandler):
