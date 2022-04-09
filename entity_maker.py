@@ -17,6 +17,7 @@ class Entity:
         self.graphic = graphic
         self.blocks_movement = False
         self.nu = None
+        self.flags = []
 
     def on_collide(self, collider: Entity):
         pass
@@ -27,12 +28,6 @@ class Player(Entity):
         super().__init__(parent, x, y, (64, colors.ORANGE, colors.DARK_GREY))
         self.nu = nu
         self.blocks_movement = True
-        self.flags = {
-            "see_through_walls": False,
-            "one_eyed": False,
-            "see_stairs": False,
-            "teleportitis": False
-        }
 
     # TODO will bump enemies and then teleport to the next step
     # noinspection PyTypeChecker
