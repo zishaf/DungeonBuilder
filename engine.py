@@ -6,7 +6,7 @@ from architect import Floor
 import tcod
 import test_functions
 from message_log import MessageLog
-from entity_maker import Player
+from entity_maker import Entity, Player
 from tcod.map import compute_fov
 import numpy as np
 import colors
@@ -43,7 +43,7 @@ class Engine:
         self.place_player()
 
         # check if the player has the ability to see stairs and reveal the staircase if so
-        if self.player.flags["see_stairs"]:
+        if 'see_stairs' in self.player.flags:
             # check if the player has the ability to see stairs and reveal the staircase if so
             for xy in self.game_map.coords_of_tile_type(tile_types.down_stairs):
                 self.game_map.explored[xy[0], xy[1]] = True
@@ -52,9 +52,9 @@ class Engine:
 
     def transparent_tiles(self) -> np.ndarray:
         transparent = np.ones((self.game_map.width, self.game_map.height), order="F") \
-            if self.player.flags["see_through_walls"] else self.game_map.tiles["transparent"]
+            if 'see_through_walls' in self.player.flags else self.game_map.tiles["transparent"]
 
-        if self.player.flags["one_eyed"]:
+        if 'one_eyed' in self.player.flags:
             new_transparent = np.zeros((self.game_map.width, self.game_map.height), order="F")
             new_transparent[:, self.player.y] = transparent[:, self.player.y]
             new_transparent[self.player.x, :] = transparent[self.player.x, :]
@@ -65,29 +65,38 @@ class Engine:
     def player_dead(self) -> bool:
         return self.player.nu <= 0
 
-    def teleport_player(self) -> bool:
+    # TODO check for collision
+    def teleport_entity(self, entity: Entity):
         new_xy = random.choice(self.game_map.coords_of_tile_type(tile_types.floor))
-        self.player.x, self.player.y = new_xy[0], new_xy[1]
-        self.player.nu -= 1
-        return True
+        entity.x, entity.y = new_xy[0], new_xy[1]
 
     def move_player(self, dest_x, dest_y) -> bool:
-        # can only move to floors
+        # can only move to walkable tiles
         if self.game_map.tiles[dest_x, dest_y]["walkable"]:
-            if self.player.flags["teleportitis"] and random.random() < .01:
-                self.teleport_player()
-            for entity in self.game_map.entities:
-                if (dest_x, dest_y) == (entity.x, entity.y):
-                    if isinstance(entity, entity_maker.NuPile):
-                        self.player.nu += entity.amt
-                        self.game_map.entities.remove(entity)
-                    if entity.blocks_movement:
-                        self.player.nu -= 1
-                        return False
-            self.player.x, self.player.y = dest_x, dest_y
-            self.player.nu -= 1
-            return True
+            # check if player has teleportitis: 1/100 of teleporting them.  nu-free!!
+            if 'teleportitis' in self.player.flags and random.random() < .01:
+                self.teleport_entity(self.player)
+
+            # otherwise move player and take nu
+            else:
+                self.player.x, self.player.y = dest_x, dest_y
+                self.player.nu -= 1
+                return True
+
+        # return false if the player didn't move to destination (teleport too)
         return False
+
+    def end_player_turn(self):
+        # add walls if the player has that "power"
+        if 'leave_walls' in self.player.flags:
+            self.game_map.tiles[self.player.x, self.player.y] = tile_types.wall
+
+        # check for collision with nu piles
+        for entity in self.game_map.entities:
+            if (self.player.x, self.player.y) == (entity.x, entity.y):
+                if isinstance(entity, entity_maker.NuPile):
+                    self.player.nu += entity.amt
+                    self.game_map.entities.remove(entity)
 
     def place_player(self) -> bool:
         floor_tiles: list = self.game_map.coords_of_tile_type(tile_types.floor).tolist()
