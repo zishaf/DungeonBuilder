@@ -15,7 +15,7 @@ import test_functions
 import tile_types
 import time
 from test_functions import make_egg_map, make_cavern_map, make_winding_map
-from god_bargains import see_through_walls, one_eyed, see_stairs, teleportitis
+from god_bargains import see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls
 from engine import Engine
 from main import WIDTH, HEIGHT, MAP_Y_OFFSET
 
@@ -257,7 +257,7 @@ class GodBargainHandler(BaseEventHandler):
 
     def __init__(self, eng: Engine):
         super().__init__(eng)
-        self.bargains = [see_through_walls, one_eyed, see_stairs, teleportitis]
+        self.bargains = [see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls]
 
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
         action_or_state = self.dispatch(event)
@@ -272,15 +272,17 @@ class GodBargainHandler(BaseEventHandler):
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> "BaseEventHandler":
         key = event.sym
-        # the escape key returns to the parent handler
 
+        # if a number key is pressed, add the appropriate flag and change player's nu
         if key in NUMBER_KEYS:
             if NUMBER_KEYS[key] < len(self.bargains):
-                self.bargains[NUMBER_KEYS[key]].func(self.engine)
                 self.engine.player.nu -= self.bargains[NUMBER_KEYS[key]].cost
+                self.engine.player.flags.append(self.bargains[NUMBER_KEYS[key]].flag)
                 return PlayerMoverHandler(self.engine)
+
         elif key == tcod.event.K_ESCAPE:
             return PlayerMoverHandler(self.engine)
+
         return self
 
 
@@ -292,13 +294,16 @@ class PlayerMoverHandler(BaseEventHandler):
         if key in MOVE_KEYS:
             dx, dy = MOVE_KEYS[key]
 
+            # the shift button will make the player do a continuos run in that direction
             if event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT):
                 while self.engine.move_player(self.engine.player.x + dx, self.engine.player.y + dy):
+                    self.engine.end_player_turn()
                     self.on_render()
                     self.engine.context.present(self.engine.console)
                     time.sleep(.1)
             else:
                 self.engine.move_player(self.engine.player.x + dx, self.engine.player.y + dy)
+                self.engine.end_player_turn()
 
         elif key == tcod.event.K_SPACE:
             if self.engine.game_map.tiles[self.engine.player.x, self.engine.player.y] == tile_types.down_stairs:
