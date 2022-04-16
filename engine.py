@@ -117,3 +117,7 @@ class Engine:
             floor_tiles.remove(xy)
 
         return False
+
+    def reveal_stairs(self) -> None:
+        for xy in self.game_map.coords_of_tile_type(tile_types.down_stairs):
+            self.game_map.explored[xy[0], xy[1]] = True

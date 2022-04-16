@@ -279,8 +279,11 @@ class GodBargainHandler(BaseEventHandler):
         # if a number key is pressed, add the appropriate flag and change player's nu
         if key in NUMBER_KEYS:
             if NUMBER_KEYS[key] < len(self.bargains):
-                self.engine.player.nu -= self.bargains[NUMBER_KEYS[key]].cost
-                self.engine.player.flags.append(self.bargains[NUMBER_KEYS[key]].flag)
+                bargain = self.bargains[NUMBER_KEYS[key]]
+                self.engine.player.nu -= bargain.cost
+                self.engine.player.flags.append(bargain.flag)
+                if bargain.func:
+                    bargain.func(self.engine)
                 return PlayerMoverHandler(self.engine)
 
         elif key == tcod.event.K_ESCAPE:
