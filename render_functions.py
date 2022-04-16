@@ -123,9 +123,11 @@ def render_map_instructions(engine: Engine):
                          f"\n\n\n'R' resets the map."
                          f"\n\nYou can set how densely it will be filled"
                          f"\n\n\nLeft clicking on two tiles will make a corridor."
-                         f"\n\n\nRight clicking on a tile will make a maze there."
+                         f"\n\n\nMiddle clicking on a tile will make a maze there."
                          f"\n\nThe maze's width and height can be modified in settings."
                          f"\n\n\nYou can also make an eg(g), wi(n)ding, or ca(v)ern map"
+                         f"\n\n\nRight click two tiles to highlight that rectangle"
+                         f"\n\nCtrl+S to save it to /resources/features directory"
                          ,
                          fg=colors.LIGHT_GREEN, alignment=LEFT)
 
@@ -292,3 +294,7 @@ def render_win_screen(engine: Engine, show_once=[]):
         time.sleep(1)
 
     show_once.append(True)
+
+
+def render_selected_tiles(engine: Engine, x1: int, y1:int, x2:int, y2: int):
+    engine.console.tiles_rgb["bg"][x1:x2+1, y1:y2+1] = colors.HIGHLIGHT

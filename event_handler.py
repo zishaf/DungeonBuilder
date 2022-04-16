@@ -10,6 +10,7 @@ import settings
 import tcod.console
 import tcod.event
 import numpy as np
+import os
 
 import test_functions
 import tile_types
@@ -118,14 +119,25 @@ class MainMenuHandler(BaseEventHandler):
 
 
 class MapBuildingHandler(BaseEventHandler):
+    def __init__(self, eng: Engine):
+        super().__init__(eng)
+        self.x1, self.y1, self.x2, self.y2 = None, None, None, None
+
     def on_render(self):
         self.engine.console.clear()
         render_functions.render_main_screen_map(self.engine)
         render_functions.render_entities_map(self.engine)
         render_functions.render_ui_map_builder(self.engine)
+        if self.x2:
+            render_functions.render_selected_tiles(self.engine, self.x1, self.y1, self.x2, self.y2)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         key = event.sym
+
+        if (tcod.event.KMOD_LCTRL | tcod.event.KMOD_RCTRL) and key == tcod.event.K_s and self.x2:
+            num = str(len(os.listdir('resources/features')))
+            np.save(f"resources/features/{num}", self.engine.console.tiles_rgb[self.x1:self.x2+1, self.y1:self.y2+1])
+            return self
 
         if key == tcod.event.K_ESCAPE:
             raise SystemExit()
@@ -190,16 +202,19 @@ class MapBuildingHandler(BaseEventHandler):
                 actions.ACTIONS["corr_between"].args = (x, y)
                 return self
 
-        # on right click switch to player control mode and place player
+        # on right click select corners of a grid for saving.
         elif mb == tcod.event.BUTTON_RIGHT:
-            w, h = settings.SETTINGS["Maze (W)idth"].val, settings.SETTINGS["Maze (H)eight"].val
-            if self.engine.game_map.in_bounds(x+w, y+h):
-                self.engine.game_map.tiles[x: x + w, y:y + h] = architect.make_maze(w, h, x, y).tiles
+            if not self.x1:
+                self.x1, self.y1 = x, y
+            elif not self.x2:
+                self.x2, self.y2 = x, y
+            else:
+                self.x1, self.y1, self.x2, self.y2 = x, y, None, None
 
         elif mb == tcod.event.BUTTON_MIDDLE:
-            filled_tiles, boundaries = architect.flood_fill_floor(self.engine.game_map, x, y)
-            for x, y in filled_tiles:
-                self.engine.game_map.tiles[x, y] = tile_types.filled
+            w, h = settings.SETTINGS["Maze (W)idth"].val, settings.SETTINGS["Maze (H)eight"].val
+            if self.engine.game_map.in_bounds(x + w, y + h):
+                self.engine.game_map.tiles[x: x + w, y:y + h] = architect.make_maze(w, h, x, y).tiles
 
 
 class SettingsHandler(BaseEventHandler):
