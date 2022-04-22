@@ -11,10 +11,10 @@ WIDTH, HEIGHT, MAP_Y_OFFSET = 68, 52, 3
 
 
 def main() -> None:
-    if not os.path.exists('/resources'):
+    if not os.path.exists('./resources'):
         # Create resources directory if there isn't one
-        os.makedirs('/resources')
-        os.makedirs('/resources/features')
+        os.makedirs('./resources')
+        os.makedirs('./resources/features')
 
     tileset = tcod.tileset.load_tilesheet("Anno_16x16.png", 16, 16, tcod.tileset.CHARMAP_CP437)
     console = tcod.Console(WIDTH, HEIGHT+MAP_Y_OFFSET, order="F")
