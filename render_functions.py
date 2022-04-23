@@ -127,7 +127,7 @@ def render_map_instructions(engine: Engine):
                          f"\n\nThe maze's width and height can be modified in settings."
                          f"\n\n\nYou can also make an eg(g), wi(n)ding, or ca(v)ern map"
                          f"\n\n\nRight click two tiles to highlight that rectangle"
-                         f"\n\nCtrl+S to save it to /resources/features directory"
+                         f"\n\nCtrl+S to save it to ./resources/features directory"
                          ,
                          fg=colors.LIGHT_GREEN, alignment=LEFT)
 
