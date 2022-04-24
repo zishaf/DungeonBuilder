@@ -87,6 +87,10 @@ class Engine:
                         entity.on_collide(self.player)
 
                 if not blocked:
+                    # add walls if the player has that "power"
+                    if 'leave_walls' in self.player.flags:
+                        self.game_map.tiles[self.player.x, self.player.y] = tile_types.wall
+
                     self.player.x, self.player.y = dest_x, dest_y
                     self.player.nu -= 1
                     return True
@@ -95,10 +99,6 @@ class Engine:
         return False
 
     def end_player_turn(self):
-        # add walls if the player has that "power"
-        if 'leave_walls' in self.player.flags:
-            self.game_map.tiles[self.player.x, self.player.y] = tile_types.wall
-
         # check for collision with other entities
         for entity in self.game_map.entities:
             if (self.player.x, self.player.y) == (entity.x, entity.y):
