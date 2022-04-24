@@ -6,7 +6,7 @@ class GodBargain:
         self.description, self.cost, self.flag, self.func = description, cost, flag, func
 
 
-see_through_walls = GodBargain("The power to see through walls~~~", 100, 'see_through_walls')
+see_through_walls = GodBargain("X-ray vision", 100, 'see_through_walls')
 one_eyed = GodBargain("Lose an eye .(", -100, 'one_eyed')
 see_stairs = GodBargain("Sense the exit", 100, 'see_stairs', Engine.reveal_stairs)
 teleportitis = GodBargain("Randomly teleport", -50, 'teleportitis')

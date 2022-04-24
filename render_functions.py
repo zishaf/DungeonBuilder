@@ -170,9 +170,10 @@ def render_bargains(engine: Engine, bargains: list[GodBargain]):
                              f"{i + 1}) {bargain.description}",
                              fg=colors.LIGHT_GREEN)
 
+        verb = 'Gain' if bargain.cost < 0 else 'Lose'
         engine.console.print(int(WIDTH * 3 / 4), y_offset,
-                             f"{bargain.cost}",
-                             fg=colors.LIGHT_GREEN, alignment=RIGHT)
+                             f"{verb} {abs(bargain.cost)}",
+                             fg=colors.LIGHT_GREEN, alignment=LEFT)
         y_offset += 2
 
 
