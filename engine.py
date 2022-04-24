@@ -79,9 +79,17 @@ class Engine:
 
             # otherwise move player and take nu
             else:
-                self.player.x, self.player.y = dest_x, dest_y
-                self.player.nu -= 1
-                return True
+                blocked = False
+                for entity in self.game_map.entities:
+                    if dest_x == entity.x and dest_y == entity.y and entity.blocks_movement:
+                        blocked = True
+                        self.player.nu -= 1
+                        entity.on_collide(self.player)
+
+                if not blocked:
+                    self.player.x, self.player.y = dest_x, dest_y
+                    self.player.nu -= 1
+                    return True
 
         # return false if the player didn't move to destination (teleport too)
         return False
@@ -91,12 +99,11 @@ class Engine:
         if 'leave_walls' in self.player.flags:
             self.game_map.tiles[self.player.x, self.player.y] = tile_types.wall
 
-        # check for collision with nu piles
+        # check for collision with other entities
         for entity in self.game_map.entities:
             if (self.player.x, self.player.y) == (entity.x, entity.y):
-                if isinstance(entity, entity_maker.NuPile):
-                    self.player.nu += entity.amt
-                    self.game_map.entities.remove(entity)
+                if entity is not self.player:
+                    entity.on_collide(self.player)
 
     def place_player(self) -> bool:
         floor_tiles: list = self.game_map.coords_of_tile_type(tile_types.floor).tolist()

@@ -23,9 +23,9 @@ class Entity:
         pass
 
 
-class Player(Entity):
-    def __init__(self, parent: Floor, x: int = None, y: int = None, nu: int = 300):
-        super().__init__(parent, x, y, (64, colors.ORANGE, colors.DARK_GREY))
+class Actor(Entity):
+    def __init__(self, parent: Floor, graphic: tile_types.graphic_dt, x: int = None, y: int = None, nu: int = 300):
+        super().__init__(parent, x, y, graphic)
         self.nu = nu
         self.blocks_movement = True
 
@@ -45,12 +45,22 @@ class Player(Entity):
         # convert from List of lists to list of Tuples
         return [(index[0], index[1]) for index in steps]
 
+    def on_collide(self, collider: Entity):
+        raise NotImplementedError
 
-class Monster(Entity):
+    def die(self):
+        raise NotImplementedError
+
+
+# TODO implement on_collide, die
+class Player(Actor):
+    def __init__(self, parent: Floor, x: int = None, y: int = None, nu: int = 300):
+        super().__init__(parent, (64, colors.ORANGE, colors.DARK_GREY), x, y, nu)
+
+
+class Monster(Actor):
     def __init__(self, parent: Floor, x: int, y: int):
-        super().__init__(parent, x, y, (2, colors.LIGHT_GREEN, colors.DARK_GREY))
-        self.nu = 10
-        self.blocks_movement = True
+        super().__init__(parent, (2, colors.LIGHT_GREEN, colors.DARK_GREY), x, y, 10)
 
     def on_collide(self, collider: Entity):
         if type(collider) == Player:
@@ -72,6 +82,6 @@ class NuPile(Entity):
         self.amt = amt
 
     def on_collide(self, collider: Entity):
-        if type(collider) == Player:
+        if type(collider) is Player:
             collider.nu += self.amt
             self.parent.entities.remove(self)

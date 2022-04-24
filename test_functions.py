@@ -248,13 +248,14 @@ def make_floor(width: int, height: int, player: entity_maker.Player = None) -> a
         feature = floor.features[feature_name]
 
         if feature_name is maze_feature:
-            architect.add_nu_piles(feature, 40)
+            architect.add_entities(feature, 40)
         else:
-            architect.add_nu_piles(feature, 15)
+            architect.add_entities(feature, 15)
 
         for entity in feature.entities:
             entity.x += feature.x
             entity.y += feature.y
+            entity.parent = floor
             floor.entities.append(entity)
             feature.entities.remove(entity)
 

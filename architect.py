@@ -9,7 +9,7 @@ import tile_types
 
 from itertools import product
 from typing import Tuple, List
-from entity_maker import NuPile
+from entity_maker import NuPile, Monster
 
 
 def neighbor_coords(x: int, y: int) -> List[tuple[int, int]]:
@@ -571,13 +571,16 @@ def make_max_maze(floor: Feature):
 
 
 # TODO nu piles can spawn on the same tile.  is this okay??
-def add_nu_piles(floor: Feature, piles: int = 15):
-    piles_added = 0
-    while piles_added < piles:
+def add_entities(floor: Feature, num: int = 15):
+    num_added = 0
+    while num_added < num:
         floor_tiles = floor.coords_of_tile_type(tile_types.floor)
         coords = random.choice(floor_tiles)
-        floor.entities.append(NuPile(floor, coords[0], coords[1], random.randint(10, 20)))
-        piles_added += 1
+        if random.random() < .5:
+            floor.entities.append(NuPile(floor, coords[0], coords[1], random.randint(10, 20)))
+        else:
+            floor.entities.append(Monster(floor, coords[0], coords[1]))
+        num_added += 1
 
 
 def game_of_life_cycle(feature: Feature, live_tile: tile_types.tile_dt, dead_tile: tile_types.tile_dt):
