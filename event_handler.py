@@ -5,12 +5,14 @@ import actions
 import architect
 import colors
 import engine
+import entity_maker
 import render_functions
 import settings
 import tcod.console
 import tcod.event
 import numpy as np
 import os
+import monster_ai
 
 import test_functions
 import tile_types
@@ -202,6 +204,7 @@ class MapBuildingHandler(BaseEventHandler):
                 actions.ACTIONS["corr_between"].args = (x, y)
                 return self
 
+        # TODO will only work if top left is selected before bottom right
         # on right click select corners of a grid for saving.
         elif mb == tcod.event.BUTTON_RIGHT:
             if not self.x1:
@@ -315,16 +318,9 @@ class PlayerMoverHandler(BaseEventHandler):
         if key in MOVE_KEYS:
             dx, dy = MOVE_KEYS[key]
 
-            # the shift button will make the player do a continuos run in that direction
-            if event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT):
-                while self.engine.move_player(self.engine.player.x + dx, self.engine.player.y + dy):
-                    self.engine.end_player_turn()
-                    self.on_render()
-                    self.engine.context.present(self.engine.console)
-                    time.sleep(.1)
-            else:
-                self.engine.move_player(self.engine.player.x + dx, self.engine.player.y + dy)
-                self.engine.end_player_turn()
+            self.engine.move_entity(self.engine.player.x + dx, self.engine.player.y + dy, self.engine.player)
+            self.engine.end_player_turn()
+            return MonsterTurnHandler(self.engine)
 
         elif key == tcod.event.K_SPACE:
             if self.engine.game_map.tiles[self.engine.player.x, self.engine.player.y] == tile_types.down_stairs:
@@ -368,26 +364,19 @@ class PlayerMoverHandler(BaseEventHandler):
         render_functions.render_main_screen_player(self.engine)
         render_functions.render_bottom_bar_player(self.engine)
 
-    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
-        mb = event.button
-        player = self.engine.player
 
-        # x, y are the locations of the click.
-        x, y = event.tile
+class MonsterTurnHandler(BaseEventHandler):
+    def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
+        for monster in self.engine.game_map.entities:
+            if type(monster) is entity_maker.Monster:
+                monster_ai.rook_target(self.engine, monster)
+        return PlayerMoverHandler(self.engine)
 
-        # if not in the game map, return the handler
-        if not self.engine.game_map.in_bounds(x, y):
-            return self
+    def on_render(self):
+        self.engine.console.clear()
 
-        # left click to autorun
-        if mb == tcod.event.BUTTON_LEFT:
-            path = player.path_to(x, y)
-            if path:
-                for step in path:
-                    player.move(*step)
-                    self.on_render()
-                    self.engine.context.present(self.engine.console)
-                    time.sleep(.05)
+        render_functions.render_main_screen_player(self.engine)
+        render_functions.render_bottom_bar_player(self.engine)
 
 
 class GameInstructionsHandler(BaseEventHandler):

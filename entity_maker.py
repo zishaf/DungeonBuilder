@@ -5,6 +5,7 @@ import colors
 from tcod import path
 from typing import Tuple, TYPE_CHECKING
 import numpy as np
+import monster_ai
 
 if TYPE_CHECKING:
     from architect import Floor, Feature

@@ -38,6 +38,18 @@ class Engine:
 
         self.game_map.explored |= self.game_map.visible
 
+    def viewshed(self, monster: entity_maker.Monster) -> list:
+        # floor = np.zeros((self.game_map.width, self.game_map.height), order="F", dtype=bool)
+        viewshed = compute_fov(
+            self.transparent_tiles(),
+            (monster.x, monster.y),
+            radius=8,
+            light_walls=True,
+            algorithm=tcod.FOV_DIAMOND
+        )
+        coords = np.argwhere(viewshed == 1).tolist()
+        return coords
+
     def make_new_game_map(self) -> None:
         self.game_map = test_functions.make_floor(self.game_map.width, self.game_map.height, player=self.player)
         self.place_player()
@@ -70,32 +82,36 @@ class Engine:
         new_xy = random.choice(self.game_map.coords_of_tile_type(tile_types.floor))
         entity.x, entity.y = new_xy[0], new_xy[1]
 
-    def move_player(self, dest_x, dest_y) -> bool:
+    def move_entity(self, dest_x, dest_y, entity: Entity) -> bool:
         # can only move to walkable tiles
         if self.game_map.tiles[dest_x, dest_y]["walkable"]:
-            # check if player has teleportitis: 1/100 of teleporting them.  nu-free!!
-            if 'teleportitis' in self.player.flags and random.random() < .01:
-                self.teleport_entity(self.player)
+            # check if entity has teleportitis: 1/100 of teleporting them.  nu-free!!
+            if 'teleportitis' in entity.flags and random.random() < .01:
+                self.teleport_entity(entity)
 
-            # otherwise move player and take nu
+            # otherwise move entity and take nu if player
             else:
                 blocked = False
-                for entity in self.game_map.entities:
-                    if dest_x == entity.x and dest_y == entity.y and entity.blocks_movement:
+                for e in self.game_map.entities:
+                    if dest_x == e.x and dest_y == e.y and e.blocks_movement:
                         blocked = True
-                        self.player.nu -= 1
-                        entity.on_collide(self.player)
+                        if entity is self.player:
+                            self.player.nu -= 1
+                        e.on_collide(entity)
 
                 if not blocked:
-                    # add walls if the player has that "power"
-                    if 'leave_walls' in self.player.flags:
-                        self.game_map.tiles[self.player.x, self.player.y] = tile_types.wall
+                    # add walls if the entity has that "power"
+                    if 'leave_walls' in entity.flags:
+                        self.game_map.tiles[entity.x, entity.y] = tile_types.wall
 
-                    self.player.x, self.player.y = dest_x, dest_y
-                    self.player.nu -= 1
+                    entity.x, entity.y = dest_x, dest_y
+
+                    if entity is self.player:
+                        self.player.nu -= 1
+
                     return True
 
-        # return false if the player didn't move to destination (teleport too)
+        # return false if the entity didn't move to destination (teleport too)
         return False
 
     def end_player_turn(self):
@@ -106,7 +122,7 @@ class Engine:
                     entity.on_collide(self.player)
 
     def place_player(self) -> bool:
-        floor_tiles: list = self.game_map.coords_of_tile_type(tile_types.floor).tolist()
+        floor_tiles = self.game_map.coords_of_tile_type(tile_types.floor).tolist()
         down_stairs = self.game_map.coords_of_tile_type(tile_types.down_stairs)
 
         while floor_tiles:
