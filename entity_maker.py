@@ -58,10 +58,13 @@ class Player(Actor):
     def __init__(self, parent: Floor, x: int = None, y: int = None, nu: int = 300):
         super().__init__(parent, (64, colors.ORANGE, colors.DARK_GREY), x, y, nu)
 
+    def on_collide(self, collider: Entity):
+        self.nu -= 5
 
 class Monster(Actor):
     def __init__(self, parent: Floor, x: int, y: int):
         super().__init__(parent, (2, colors.LIGHT_GREEN, colors.DARK_GREY), x, y, 10)
+        self.target_tiles = []
 
     def on_collide(self, collider: Entity):
         if type(collider) == Player:

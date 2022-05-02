@@ -43,7 +43,7 @@ class Engine:
         viewshed = compute_fov(
             self.transparent_tiles(),
             (monster.x, monster.y),
-            radius=8,
+            radius=10,
             light_walls=True,
             algorithm=tcod.FOV_DIAMOND
         )
@@ -144,3 +144,6 @@ class Engine:
     def reveal_stairs(self) -> None:
         for xy in self.game_map.coords_of_tile_type(tile_types.down_stairs):
             self.game_map.explored[xy[0], xy[1]] = True
+
+    def monsters(self) -> list:
+        return [monster for monster in self.game_map.entities if type(monster) == entity_maker.Monster]

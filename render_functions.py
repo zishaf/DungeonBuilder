@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 import time
 
+import entity_maker
 from engine import Engine
 from tcod import CENTER, RIGHT, LEFT, BKGND_ALPHA
 from typing import TYPE_CHECKING
@@ -14,6 +15,7 @@ from main import WIDTH, HEIGHT
 
 if TYPE_CHECKING:
     from god_bargains import GodBargain
+    from entity_maker import Monster
 
 
 def render_main_screen_player(engine: Engine):
@@ -46,6 +48,10 @@ def render_main_screen_player(engine: Engine):
         if engine.game_map.explored[entity.x, entity.y]:
             if entity.x in range(camera_x1, camera_x2) and entity.y in range(camera_y1, camera_y2):
                 engine.console.tiles_rgb[entity.x-camera_x1, entity.y-camera_y1] = entity.graphic
+        if type(entity) is entity_maker.Monster:
+            for (x, y) in entity.target_tiles:
+                if engine.game_map.visible[x, y]:
+                    engine.console.tiles_rgb["bg"][x - camera_x1, y - camera_y1] = colors.DARK_RED
 
 
 def render_main_screen_map(engine: Engine):

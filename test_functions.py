@@ -181,7 +181,8 @@ def make_floor(width: int, height: int, player: entity_maker.Player = None) -> a
     floor.features['bot_right'] = architect.Feature(width-x_divider, height-y_divider, x_divider, y_divider)
 
     # TODO make this, along with everything else, a probability table based on depth
-    feature_types = ['maze', 'cavern', 'winding', 'egg']
+    # 'winding'
+    feature_types = ['maze', 'cavern', 'egg']
 
     maze_feature: str = ''
     non_mazes = []

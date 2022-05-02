@@ -192,6 +192,8 @@ class MapBuildingHandler(BaseEventHandler):
 
         # on left click build a corridor
         if mb == tcod.event.BUTTON_LEFT:
+            if tcod.event.KMOD_LCTRL:
+                self.engine.game_map.entities.append(entity_maker.Monster(self.engine.game_map, x, y))
 
             # if the length is two, it is the end point. add x, y to args and make the corridor
             if len(actions.ACTIONS["corr_between"].args) == 2:
@@ -207,6 +209,10 @@ class MapBuildingHandler(BaseEventHandler):
         # TODO will only work if top left is selected before bottom right
         # on right click select corners of a grid for saving.
         elif mb == tcod.event.BUTTON_RIGHT:
+            if tcod.event.KMOD_LCTRL:
+                self.engine.player.x, self.engine.player.y = x, y
+                return self
+
             if not self.x1:
                 self.x1, self.y1 = x, y
             elif not self.x2:
@@ -367,8 +373,10 @@ class PlayerMoverHandler(BaseEventHandler):
 
 class MonsterTurnHandler(BaseEventHandler):
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
-        for monster in self.engine.game_map.entities:
-            if type(monster) is entity_maker.Monster:
+        for monster in self.engine.monsters():
+            if monster.target_tiles:
+                monster_ai.rook_attack(self.engine, monster)
+            elif [self.engine.player.x, self.engine.player.y] in self.engine.viewshed(monster):
                 monster_ai.rook_target(self.engine, monster)
         return PlayerMoverHandler(self.engine)
 
