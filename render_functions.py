@@ -51,6 +51,7 @@ def render_main_screen_player(engine: Engine):
         if type(entity) is entity_maker.Monster:
             for (x, y) in entity.target_tiles:
                 if engine.game_map.visible[x, y]:
+                    # TODO bug: index 66 is out of bounds for axis 1 with size 55 (monster at bottom of screen)
                     engine.console.tiles_rgb["bg"][x - camera_x1, y - camera_y1] = colors.DARK_RED
 
 

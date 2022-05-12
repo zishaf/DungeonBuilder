@@ -375,9 +375,12 @@ class MonsterTurnHandler(BaseEventHandler):
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
         for monster in self.engine.monsters():
             if monster.target_tiles:
-                monster_ai.rook_attack(self.engine, monster)
+                monster_ai.move_to_target(self.engine, monster)
             elif [self.engine.player.x, self.engine.player.y] in self.engine.viewshed(monster):
-                monster_ai.rook_target(self.engine, monster)
+                if random.random() < 0.5:
+                    monster_ai.rook_target(self.engine, monster)
+                else:
+                    monster_ai.bishop_target(self.engine, monster)
         return PlayerMoverHandler(self.engine)
 
     def on_render(self):
