@@ -14,9 +14,7 @@ import numpy as np
 import os
 import monster_ai
 
-import test_functions
 import tile_types
-import time
 from test_functions import make_egg_map, make_cavern_map, make_winding_map
 from god_bargains import see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls
 from engine import Engine
@@ -193,7 +191,7 @@ class MapBuildingHandler(BaseEventHandler):
         # on left click build a corridor
         if mb == tcod.event.BUTTON_LEFT:
             if tcod.event.KMOD_LCTRL:
-                self.engine.game_map.entities.append(entity_maker.Monster(self.engine.game_map, x, y))
+                self.engine.entities.append(entity_maker.Monster(self.engine.game_map, x, y))
 
             # if the length is two, it is the end point. add x, y to args and make the corridor
             if len(actions.ACTIONS["corr_between"].args) == 2:
@@ -373,7 +371,7 @@ class PlayerMoverHandler(BaseEventHandler):
 
 class MonsterTurnHandler(BaseEventHandler):
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
-        for monster in self.engine.monsters():
+        for monster in self.engine.entities_of_type(entity_maker.Monster):
             if monster.target_tiles:
                 monster_ai.move_to_target(self.engine, monster)
             elif [self.engine.player.x, self.engine.player.y] in self.engine.viewshed(monster):
@@ -421,7 +419,7 @@ class WinHandler(BaseEventHandler):
     def on_render(self):
         render_functions.render_win_screen(self.engine)
 
-    def ev_keydown(self, event: tcod.event.KeyDown) -> "BaseEventHandler":
+    def ev_keydown(self, event: tcod.event.KeyDown):
         key = event.sym
 
         if key in [tcod.event.K_q, tcod.event.K_ESCAPE]:

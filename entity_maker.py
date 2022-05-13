@@ -1,18 +1,17 @@
 from __future__ import annotations
 
+import numpy as np
 import tile_types
 import colors
 from tcod import path
 from typing import Tuple, TYPE_CHECKING
-import numpy as np
-import monster_ai
 
 if TYPE_CHECKING:
-    from architect import Floor, Feature
+    from engine import Engine
 
 
 class Entity:
-    def __init__(self, parent: Floor, x: int = None, y: int = None, graphic: tile_types.graphic_dt = None):
+    def __init__(self, parent: Engine, x: int = None, y: int = None, graphic: tile_types.graphic_dt = None):
         self.parent = parent
         self.x, self.y = x, y
         self.graphic = graphic
@@ -25,7 +24,7 @@ class Entity:
 
 
 class Actor(Entity):
-    def __init__(self, parent: Floor, graphic: tile_types.graphic_dt, x: int = None, y: int = None, nu: int = 300):
+    def __init__(self, parent: Engine, graphic: tile_types.graphic_dt, x: int = None, y: int = None, nu: int = 300):
         super().__init__(parent, x, y, graphic)
         self.nu = nu
         self.blocks_movement = True
@@ -33,7 +32,7 @@ class Actor(Entity):
     # TODO will bump enemies and then teleport to the next step
     # noinspection PyTypeChecker
     def path_to(self, dest_x, dest_y) -> list[Tuple[int, int]]:
-        cost = np.array(self.parent.tiles["walkable"], dtype=np.int8)
+        cost = np.array(self.parent.game_map.tiles["walkable"], dtype=np.int8)
 
         graph = path.SimpleGraph(cost=cost, cardinal=1, diagonal=0)
         pathfinder = path.Pathfinder(graph)
@@ -55,14 +54,15 @@ class Actor(Entity):
 
 # TODO implement on_collide, die
 class Player(Actor):
-    def __init__(self, parent: Floor, x: int = None, y: int = None, nu: int = 300):
+    def __init__(self, parent: Engine, x: int = None, y: int = None, nu: int = 300):
         super().__init__(parent, (64, colors.ORANGE, colors.DARK_GREY), x, y, nu)
 
     def on_collide(self, collider: Entity):
         self.nu -= 5
 
+
 class Monster(Actor):
-    def __init__(self, parent: Floor, x: int, y: int):
+    def __init__(self, parent: Engine, x: int, y: int):
         super().__init__(parent, (2, colors.LIGHT_GREEN, colors.DARK_GREY), x, y, 10)
         self.target_tiles = []
 
@@ -81,7 +81,7 @@ class Monster(Actor):
 
 
 class NuPile(Entity):
-    def __init__(self, parent: Feature, x: int, y: int, amt: int):
+    def __init__(self, parent: Engine, x: int, y: int, amt: int):
         super().__init__(parent, x, y, (15, colors.GOLD, colors.DARK_GREY))
         self.amt = amt
 

@@ -37,12 +37,9 @@ def bishop_target(engine: Engine, monster: Monster):
     # store player and monster coords for convenient access
     p_x, p_y, m_x, m_y = engine.player.x, engine.player.y, monster.x, monster.y
 
-    # the direction the monster is aimed, will
-    dx, dy = 0, 0
-
     # move both horizontally and vertically towards player (who knows what to do on zero?)
     dx = 1 if m_x < p_x else -1
-    dy = 1 if m_x <= p_x else -1
+    dy = 1 if m_y < p_y else -1
 
     # walk in the target direction until a wall is hit or 8 squares
     distance = 0
@@ -59,7 +56,7 @@ def move_to_target(engine: Engine, monster: Monster):
             monster.target_tiles = []
             return
 
-        for entity in engine.game_map.entities:
+        for entity in engine.entities:
             if x == entity.x and y == entity.y:
                 engine.log.add_message(random.choice(words) + ' (-5 nu)')
                 entity.on_collide(entity)

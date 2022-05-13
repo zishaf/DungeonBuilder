@@ -4,7 +4,7 @@ from typing import List, Reversible, Tuple
 import tcod
 
 
-#lifted from tutorial
+# lifted from tutorial
 class Message:
     def __init__(self, text: str, fg: Tuple[int, int, int]):
         self.plain_text = text
@@ -24,7 +24,7 @@ class MessageLog:
         self.messages: List[Message] = []
 
     def add_message(
-        self, text: str, fg: Tuple[int, int, int] = (255,255,255), *, stack: bool = True,
+        self, text: str, fg: Tuple[int, int, int] = (255, 255, 255), *, stack: bool = True,
     ) -> None:
         """Add a message to this log.
         `text` is the message text, `fg` is the text color.
@@ -67,4 +67,4 @@ class MessageLog:
                 console.print(x=x, y=y + y_offset, string=line, fg=message.fg)
                 y_offset -= 1
             console.print(x=x, y=y+y_offset, string=" ")
-            y_offset-= 1
+            y_offset -= 1

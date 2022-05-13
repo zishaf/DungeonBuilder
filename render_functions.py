@@ -15,7 +15,6 @@ from main import WIDTH, HEIGHT
 
 if TYPE_CHECKING:
     from god_bargains import GodBargain
-    from entity_maker import Monster
 
 
 def render_main_screen_player(engine: Engine):
@@ -39,12 +38,14 @@ def render_main_screen_player(engine: Engine):
             camera_y2 += 1
 
     engine.console.tiles_rgb[0:WIDTH, 0:HEIGHT] = np.select(
-        condlist=[engine.game_map.visible[camera_x1:camera_x2, camera_y1:camera_y2], engine.game_map.explored[camera_x1:camera_x2, camera_y1:camera_y2]],
-        choicelist=[engine.game_map.tiles[camera_x1:camera_x2, camera_y1:camera_y2]["light"], engine.game_map.tiles[camera_x1:camera_x2, camera_y1:camera_y2]["dark"]],
+        condlist=[engine.game_map.visible[camera_x1:camera_x2, camera_y1:camera_y2],
+                  engine.game_map.explored[camera_x1:camera_x2, camera_y1:camera_y2]],
+        choicelist=[engine.game_map.tiles[camera_x1:camera_x2, camera_y1:camera_y2]["light"],
+                    engine.game_map.tiles[camera_x1:camera_x2, camera_y1:camera_y2]["dark"]],
         default=tile_types.SHROUD,
     )
 
-    for entity in engine.game_map.entities:
+    for entity in engine.entities:
         if engine.game_map.explored[entity.x, entity.y]:
             if entity.x in range(camera_x1, camera_x2) and entity.y in range(camera_y1, camera_y2):
                 engine.console.tiles_rgb[entity.x-camera_x1, entity.y-camera_y1] = entity.graphic
@@ -79,8 +80,9 @@ def render_ui_map_builder(engine: Engine):
                              )
 
 
+# TODO will this update off-screen entities?
 def render_entities_map(engine: Engine):
-    for entity in engine.game_map.entities:
+    for entity in engine.entities:
         if not entity.x or not entity.y:
             continue
         if engine.game_map.explored[entity.x, entity.y]:
@@ -304,5 +306,5 @@ def render_win_screen(engine: Engine, show_once=[]):
     show_once.append(True)
 
 
-def render_selected_tiles(engine: Engine, x1: int, y1:int, x2:int, y2: int):
+def render_selected_tiles(engine: Engine, x1: int, y1: int, x2: int, y2: int):
     engine.console.tiles_rgb["bg"][x1:x2+1, y1:y2+1] = colors.HIGHLIGHT

@@ -9,7 +9,6 @@ import tile_types
 
 from itertools import product
 from typing import Tuple, List
-from entity_maker import NuPile, Monster
 
 
 def neighbor_coords(x: int, y: int) -> List[tuple[int, int]]:
@@ -17,8 +16,7 @@ def neighbor_coords(x: int, y: int) -> List[tuple[int, int]]:
 
 
 class Feature:
-    def __init__(self, width: int, height: int, x: int = 0, y: int = 0, entities: list = None):
-        self.entities = [] if entities is None else entities
+    def __init__(self, width: int, height: int, x: int = 0, y: int = 0):
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
         self.width, self.height = width, height
         self.x, self.y = x, y
@@ -55,14 +53,15 @@ class Feature:
     def can_corridor(self, x: int, y: int, blobulousness: int = 0) -> bool:
         # can dig corridor if the tile is in bounds, is a wall, and has enough adjacent walls
         # awkward calculation with blobulation because I like the var name and think it should start from 0
-        return self.in_bounds(x, y) and self.tiles[x, y] == tile_types.wall and self.cardinal_walls(x, y) > 2 - blobulousness
+        return self.in_bounds(x, y) and self.tiles[x, y] == tile_types.wall \
+               and self.cardinal_walls(x, y) > 2 - blobulousness
 
     def coords_of_tile_type(self, tile_type: tile_types.tile_dt) -> np.ndarray:
         return np.argwhere(self.tiles == tile_type)
 
 
 class Floor(Feature):
-    def __init__(self, width: int, height: int, entities=None, features=None):
+    def __init__(self, width: int, height: int, features=None):
         super().__init__(width, height)
         self.features = [] if features is None else features
         self.features = {
@@ -245,23 +244,6 @@ def smooth_it_out(floor: Feature, smoothness: int = 5):
     floor.tiles = new_floor
 
 
-def new_smooth(feature: Feature, smoothness: int = 5):
-    tick = time.perf_counter()
-
-    bogdown=1
-
-    smoothed_floor = np.full((feature.width, feature.height), tile_types.wall, dtype=tile_types.tile_dt, order='F')
-    for (x, y), tile in np.ndenumerate(feature.tiles[1:feature.width-1, 1:feature.height-1]):
-        bogdown+=1
-        """if feature.diagonal_tile_count(x+1, y+1) < smoothness:
-            smoothed_floor[x+1, y+1] = tile_types.floor"""
-
-    feature.tiles = smoothed_floor
-
-    tock = time.perf_counter()
-    print(f"new smooth in {tock - tick:4f} sec")
-
-
 def fill_caverns(floor: Feature, radius: int = 2):
     # make wall tiles anywhere there are no other wall tiles within the given radius
     new_floor = floor.tiles.copy(order="F")
@@ -278,60 +260,6 @@ def reset_map(floor: Feature, denseness: float = 0.5):
     for x in range(1, floor.width - 1):
         for y in range(1, floor.height - 1):
             floor.tiles[x, y] = tile_types.wall if random.random() < denseness else tile_types.floor
-
-
-def fast_corridor(floor: Feature, length: int) -> bool:
-    # make a set of possible starting points
-    starts = list(floor.valid_starts())
-    random.shuffle(starts)
-    # pop random coords as starting points and see if a corridor can be made
-    while starts:
-        # get our starting point
-        x, y = starts.pop()
-
-        # the current corridor will store the coordinates, the dests will store corresponding available directions
-        curr_corr: list[Tuple[int, int]] = [(x, y)]
-        directions: list[List] = [[0, 1, 2, 3]]
-
-        # randomly walk until corridor is long enough or impossible
-        while curr_corr and len(curr_corr) < length:
-            x, y = curr_corr[-1]
-            # make a list of the adjacent tiles as possible destinations
-            cardinals = [(x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y)]
-
-            # if there are no more directions to try then we've reached a dead end, remove the most recent tile
-            if not directions[-1]:
-                curr_corr.pop()
-                directions.pop()
-
-            else:
-                # pop arbitrarily from most recent direction set and compare with cardinals to set x and y destination
-                direction = random.choice(directions[-1])
-                directions[-1].remove(direction)
-                x_dest, y_dest = cardinals[direction]
-
-                # make sets from current corridor squares and adjacent tiles and finds length of overlap
-                destination_tiles = {(x_dest, y_dest + 1), (x_dest + 1, y_dest), (x_dest, y_dest - 1),
-                                     (x_dest - 1, y_dest)}
-                overlapping_tiles = len(set(curr_corr) & destination_tiles)
-
-                # check that destination is in bounds, surrounded by walls, and only touches one tile of the corridor
-                if floor.in_bounds(x_dest, y_dest) and floor.cardinal_walls(x_dest,
-                                                                            y_dest) == 4 and overlapping_tiles == 1:
-                    # if so, we add the destination to the corridor with a fresh set of available directions
-                    curr_corr.append((x_dest, y_dest))
-                    directions.append([0, 1, 2, 3])
-                    # remove the opposite direction from possible ways this can go
-                    directions[-1].remove((direction + 2) % 4)
-
-        # if the corridor is long make all the tiles floors
-        if len(curr_corr) == length:
-            for x, y in curr_corr:
-                floor.tiles[x, y] = tile_types.floor
-            return True
-
-    # no start worked
-    return False
 
 
 # TODO rework random_corridor/tunnel function with stack, currently hangs on hard-to-find tunnels
@@ -566,23 +494,6 @@ def max_histogram(heights: list[int]) -> Tuple[int, int, int, int]:
     return x, max_width, max_height, max_area
 
 
-def make_max_maze(floor: Feature):
-    make_maze(floor, *find_rectangle(floor))
-
-
-# TODO nu piles can spawn on the same tile.  is this okay??
-def add_entities(floor: Feature, num: int = 15):
-    num_added = 0
-    while num_added < num:
-        floor_tiles = floor.coords_of_tile_type(tile_types.floor)
-        coords = random.choice(floor_tiles)
-        if random.random() < .5:
-            floor.entities.append(NuPile(floor, coords[0], coords[1], random.randint(10, 20)))
-        else:
-            floor.entities.append(Monster(floor, coords[0], coords[1]))
-        num_added += 1
-
-
 def game_of_life_cycle(feature: Feature, live_tile: tile_types.tile_dt, dead_tile: tile_types.tile_dt):
 
     # store a copy of the floor tiles to modify without changing adjacency counts
@@ -595,7 +506,9 @@ def game_of_life_cycle(feature: Feature, live_tile: tile_types.tile_dt, dead_til
     # add the coordinates of each live tile and all surrounding tiles to the set to check adjacency
     for tile in live_tile_indices:
         x, y = tile[0], tile[1]
-        check_tiles.update([(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)])
+        check_tiles.update(
+            [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
+        )
 
     # check each tile's neighbors to see how many instances of live_tile there are
     for x, y in check_tiles:
