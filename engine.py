@@ -41,8 +41,7 @@ class Engine:
 
         self.game_map.explored |= self.game_map.visible
 
-    def viewshed(self, monster: entity_maker.Monster) -> list:
-        # floor = np.zeros((self.game_map.width, self.game_map.height), order="F", dtype=bool)
+    def calculate_viewshed(self, monster: entity_maker.Monster) -> list:
         viewshed = compute_fov(
             self.transparent_tiles(),
             (monster.x, monster.y),

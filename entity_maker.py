@@ -65,6 +65,7 @@ class Monster(Actor):
     def __init__(self, parent: Engine, x: int, y: int):
         super().__init__(parent, (2, colors.LIGHT_GREEN, colors.DARK_GREY), x, y, 10)
         self.target_tiles = []
+        self.viewshed = self.parent.calculate_viewshed(self)
 
     def on_collide(self, collider: Entity):
         if type(collider) == Player:
