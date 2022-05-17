@@ -5,6 +5,8 @@ import tile_types
 import colors
 from tcod import path
 from typing import Tuple, TYPE_CHECKING
+import monster_ai
+import random
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -78,8 +80,13 @@ class Monster(Actor):
         self.parent.entities.append(NuPile(self.parent, self.x, self.y, 5))
 
     def take_turn(self) -> None:
-        pass
-
+        if self.target_tiles:
+            monster_ai.move_to_target(self)
+        elif [self.parent.player.x, self.parent.player.y] in self.viewshed:
+            if random.random() < 0.5:
+                monster_ai.rook_target(self)
+            else:
+                monster_ai.bishop_target(self)
 
 class NuPile(Entity):
     def __init__(self, parent: Engine, x: int, y: int, amt: int):
