@@ -1,6 +1,5 @@
 from typing import Optional, Union
 
-import random
 import actions
 import architect
 import colors
@@ -12,7 +11,7 @@ import tcod.console
 import tcod.event
 import numpy as np
 import os
-import monster_ai
+import time
 
 import tile_types
 from test_functions import make_egg_map, make_cavern_map, make_winding_map
@@ -372,13 +371,7 @@ class PlayerMoverHandler(BaseEventHandler):
 class MonsterTurnHandler(BaseEventHandler):
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
         for monster in self.engine.entities_of_type(entity_maker.Monster):
-            if monster.target_tiles:
-                monster_ai.move_to_target(monster)
-            elif [self.engine.player.x, self.engine.player.y] in monster.viewshed:
-                if random.random() < 0.5:
-                    monster_ai.rook_target(monster)
-                else:
-                    monster_ai.bishop_target(monster)
+            monster.take_turn()
         return PlayerMoverHandler(self.engine)
 
     def on_render(self):

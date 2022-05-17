@@ -2,11 +2,12 @@ from __future__ import annotations
 
 
 import random
-import time
 
+import numpy
 import numpy as np
 import tile_types
 
+from numba import njit
 from itertools import product
 from typing import Tuple, List
 
@@ -234,14 +235,34 @@ class BraidMaze(Maze):
         return self.tiles[x, y] == tile_types.floor and self.cardinal_walls(x, y) > 1
 
 
-def smooth_it_out(floor: Feature, smoothness: int = 5):
+def smooth_it_out(floor: Feature, smoothness: int = 4):
     # converts each cell to its most common neighbor, a higher smoothness means fewer walls
-    new_floor = floor.tiles.copy(order="F")
-    time.perf_counter()
-    for x in range(1, floor.width - 1):
-        for y in range(1, floor.height - 1):
-            new_floor[x, y] = tile_types.wall if floor.diagonal_tile_count(x, y) >= smoothness else tile_types.floor
-    floor.tiles = new_floor
+    bools = tiles_to_bools(floor)
+    new_floor = fast_smooth(bools, smoothness-1)
+    bools_to_tiles(floor, new_floor)
+
+
+@njit
+def fast_smooth(a: numpy.ndarray, b):
+    new_a = numpy.zeros(shape=a.shape, dtype='b1')
+    w, h = new_a.shape
+    for x in range(1, w-1):
+        for y in range(1, h-1):
+            if np.count_nonzero(a[x-1:x+2, y-1:y+2]) > b:
+                new_a[x, y] = 1
+            else:
+                new_a[x, y] = 0
+    return new_a
+
+
+def tiles_to_bools(feature: Feature) -> np.ndarray:
+    return feature.tiles['walkable']
+
+
+def bools_to_tiles(feature: Feature, a: np.ndarray):
+    for i in range(feature.width):
+        for j in range(feature.height):
+            feature.tiles[i, j] = tile_types.floor if a[i, j] else tile_types.wall
 
 
 def fill_caverns(floor: Feature, radius: int = 2):
