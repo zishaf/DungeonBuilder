@@ -58,11 +58,11 @@ def make_egg_map(floor: architect.Feature):
 
     # smooth it out a bit
     for i in range(smoothing_passes):
-        architect.smooth_it_out(floor, smoothness=7)
+        architect.smooth_it_out(floor)
 
     for i in range(len(eggs)-1):
         architect.corridor_between(floor, eggs[i].x, eggs[i].y, eggs[i+1].x, eggs[i+1].y)
-    tick = time.perf_counter()
+
     # make some long corridors
     corrs = random.randint(3, 8)
     for i in range(corrs):
@@ -83,8 +83,6 @@ def make_egg_map(floor: architect.Feature):
         length = random.randint(8, 15)
         if not architect.random_corridor(floor, length=length):
             break
-    tock = time.perf_counter()
-    print(f"making the corridors took {tock-tick:4f} seconds")
 
 
 def make_cavern_map(floor: architect.Feature, denseness: float, smoothness: int, passes: int):

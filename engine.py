@@ -53,6 +53,7 @@ class Engine:
         return coords
 
     def make_new_game_map(self) -> None:
+        self.entities = [self.player]
         self.game_map = self.make_floor(self.game_map.width, self.game_map.height)
         self.place_player()
         self.add_entities()
