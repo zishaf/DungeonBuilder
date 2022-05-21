@@ -26,7 +26,7 @@ def rook_target(monster: Monster):
 
     # walk in the target direction until a wall is hit or 8 squares
     distance = 0
-    while monster.parent.game_map.tiles[m_x, m_y] == tile_types.floor and distance < 8:
+    while monster.parent.game_map.tiles['walkable'][m_x, m_y] and distance < 8:
         distance += 1
         m_x += dx
         m_y += dy
@@ -43,7 +43,7 @@ def bishop_target(monster: Monster):
 
     # walk in the target direction until a wall is hit or 8 squares
     distance = 0
-    while monster.parent.game_map.tiles[m_x, m_y] == tile_types.floor and distance < 8:
+    while monster.parent.game_map.tiles['walkable'][m_x, m_y] and distance < 8:
         distance += 1
         m_x += dx
         m_y += dy
