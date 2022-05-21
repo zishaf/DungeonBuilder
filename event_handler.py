@@ -189,8 +189,10 @@ class MapBuildingHandler(BaseEventHandler):
 
         # on left click build a corridor
         if mb == tcod.event.BUTTON_LEFT:
-            if tcod.event.KMOD_LCTRL:
+            mod = tcod.event.Modifier(192)
+            if mod & tcod.event.Modifier.SHIFT:
                 self.engine.entities.append(entity_maker.Monster(self.engine, x, y))
+                return self
 
             # if the length is two, it is the end point. add x, y to args and make the corridor
             if len(actions.ACTIONS["corr_between"].args) == 2:
@@ -284,6 +286,7 @@ class GodBargainHandler(BaseEventHandler):
         self.bargains = [see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls]
 
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
+
         action_or_state = self.dispatch(event)
         if isinstance(action_or_state, BaseEventHandler):
             return action_or_state
@@ -314,6 +317,11 @@ class GodBargainHandler(BaseEventHandler):
 
 
 class PlayerMoverHandler(BaseEventHandler):
+    def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
+        if self.engine.player_dead():
+            return GameOverEventHandler(self.engine)
+        else:
+            return super().handle_events(event)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> "BaseEventHandler":
         key = event.sym
@@ -353,10 +361,6 @@ class PlayerMoverHandler(BaseEventHandler):
 
         elif key == tcod.event.K_SLASH and (event.mod & (tcod.event.KMOD_LSHIFT | tcod.event.KMOD_RSHIFT)):
             return GameInstructionsHandler(self.engine)
-
-        if self.engine.player_dead():
-            self.engine = engine.Engine(self.engine.context, self.engine.console)
-            return GameOverEventHandler(self.engine)
 
         return self
 

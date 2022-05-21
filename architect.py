@@ -26,12 +26,12 @@ class Feature:
     def in_bounds(self, x, y) -> bool:
         return 0 < x < self.width - 1 and 0 < y < self.height - 1
 
-    """def cells_centered_on(self, x: int, y: int, r: int = 1) -> np.ndarray:
-        # gets slice of floor tiles based on radius. uses min, max to avoid out of bounds tiles in one fancy line
-        return self.tiles[max(x - r, 0): min(x + r + 1, self.width), max(y - r, 0): min(y + r + 1, self.height)]"""
-
     def cells_centered_on(self, x: int, y: int, r: int = 1) -> np.ndarray:
-        return self.tiles[x - r:x + r + 1, y - r: y + r + 1]
+        # gets slice of floor tiles based on radius. uses min, max to avoid out of bounds tiles in one fancy line
+        return self.tiles[max(x - r, 0): min(x + r + 1, self.width), max(y - r, 0): min(y + r + 1, self.height)]
+
+    """def cells_centered_on(self, x: int, y: int, r: int = 1) -> np.ndarray:
+        return self.tiles[x - r:x + r + 1, y - r: y + r + 1]"""
 
     def diagonal_tile_count(self, x: int, y: int, r: int = 1, tile_type: tile_types.tile_dt = tile_types.wall) -> int:
         # counts walls in given radius of cells centered on x, y
@@ -172,7 +172,7 @@ class PerfectMaze(Maze):
         while choices:
             x, y, direction = random.choice(choices)
             choices.remove((x, y, direction))
-            if np.count_nonzero(self.adjacent_tiles(x, y) == tile_types.wall) == 1 \
+            if np.count_nonzero(self.adjacent_tiles(x, y) == np.ndarray.item(tile_types.wall)) == 1 \
                     and self.tiles[x, y] == tile_types.floor \
                     and self.check_diagonals(x, y, direction):
                 self.tiles[x, y] = tile_types.wall
@@ -235,7 +235,7 @@ class BraidMaze(Maze):
         return self.tiles[x, y] == tile_types.floor and self.cardinal_walls(x, y) > 1
 
 
-def smooth_it_out(floor: Feature, smoothness: int = 4):
+def smooth_it_out(floor: Feature, smoothness: int = 5):
     # converts each cell to its most common neighbor, a higher smoothness means fewer walls
     bools = tiles_to_bools(floor)
     new_floor = fast_smooth(bools, smoothness-1)
