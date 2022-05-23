@@ -40,10 +40,11 @@ def main() -> None:
 
             for event in tcod.event.wait():
                 context.convert_event(event)
-                handler = handler.handle_events(event)
                 if isinstance(handler, event_handler.BaseEventHandler):
                     handler.on_render()
                     context.present(handler.engine.console)
+                handler = handler.handle_events(event)
+
 
 
 if __name__ == "__main__":

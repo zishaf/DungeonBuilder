@@ -87,6 +87,9 @@ class Engine:
         entity.x, entity.y = new_xy[0], new_xy[1]
 
     def move_entity(self, dest_x, dest_y, entity: Entity) -> bool:
+        if entity == self.player:
+            self.player.energy += 100
+
         # can only move to walkable tiles
         if self.game_map.tiles[dest_x, dest_y]["walkable"]:
             # check if entity has teleportitis: 1/100 of teleporting them.  nu-free!!
@@ -128,10 +131,10 @@ class Engine:
     def place_player(self) -> bool:
         floor_tiles = list(self.game_map.coords_of_tile_type(tile_types.floor))
         down_stairs = self.game_map.coords_of_tile_type(tile_types.down_stairs)
+        random.shuffle(floor_tiles)
 
-        while floor_tiles:
+        for xy in floor_tiles:
             # pick a random starting tile
-            xy = random.choice(floor_tiles)
             self.player.x, self.player.y = xy[0], xy[1]
             good_location = True
 
@@ -144,8 +147,6 @@ class Engine:
             if good_location:
                 return True
 
-            floor_tiles.remove(xy)
-
         return False
 
     def reveal_stairs(self) -> None:
@@ -153,7 +154,7 @@ class Engine:
             self.game_map.explored[xy[0], xy[1]] = True
 
     def entities_of_type(self, t) -> list:
-        return [monster for monster in self.entities if type(monster) == t]
+        return [monster for monster in self.entities if isinstance(monster, t)]
 
     # TODO nu piles can spawn on the same tile.  is this okay??
     def add_entities(self):

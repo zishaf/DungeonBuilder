@@ -12,6 +12,7 @@ import tcod.event
 import numpy as np
 import os
 import time
+from operator import attrgetter
 
 import tile_types
 from test_functions import make_egg_map, make_cavern_map, make_winding_map
@@ -76,8 +77,8 @@ class BaseEventHandler(tcod.event.EventDispatch[None]):
 
         # if an action is returned by dispatch, perform then return self as the active handler
         if isinstance(action_or_state, actions.Action):
-            action_or_state.perform(self.engine.game_map)
             self.engine.log.add_message(action_or_state.message)
+            action_or_state.perform(self.engine.game_map)
 
         # if no return type is found (unprogrammed event), return self as active handler
         return self
@@ -331,7 +332,7 @@ class PlayerMoverHandler(BaseEventHandler):
 
             self.engine.move_entity(self.engine.player.x + dx, self.engine.player.y + dy, self.engine.player)
             self.engine.end_player_turn()
-            return MonsterTurnHandler(self.engine)
+            return tick(self)
 
         elif key == tcod.event.K_SPACE:
             if self.engine.game_map.tiles[self.engine.player.x, self.engine.player.y] == tile_types.down_stairs:
@@ -372,19 +373,6 @@ class PlayerMoverHandler(BaseEventHandler):
         render_functions.render_bottom_bar_player(self.engine)
 
 
-class MonsterTurnHandler(BaseEventHandler):
-    def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
-        for monster in self.engine.entities_of_type(entity_maker.Monster):
-            monster.take_turn()
-        return PlayerMoverHandler(self.engine)
-
-    def on_render(self):
-        self.engine.console.clear()
-
-        render_functions.render_main_screen_player(self.engine)
-        render_functions.render_bottom_bar_player(self.engine)
-
-
 class GameInstructionsHandler(BaseEventHandler):
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
         action_or_state = self.dispatch(event)
@@ -421,3 +409,17 @@ class WinHandler(BaseEventHandler):
 
         if key in [tcod.event.K_q, tcod.event.K_ESCAPE]:
             raise SystemExit()
+
+
+def tick(handler: BaseEventHandler):
+    actors = handler.engine.entities_of_type(entity_maker.Actor)
+    min_actor = min(actors, key=attrgetter('energy'))
+    min_actor_energy = min_actor.energy
+    for actor in actors:
+        actor.energy = max(0, actor.energy - min_actor_energy)
+    return PlayerMoverHandler(handler.engine) if handler.engine.player.energy == 0 else monster_turn(handler, min_actor)
+
+
+def monster_turn(handler: BaseEventHandler, monster: entity_maker.Monster):
+    monster.take_turn()
+    return tick(handler)

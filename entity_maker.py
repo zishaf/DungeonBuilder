@@ -30,6 +30,7 @@ class Actor(Entity):
         super().__init__(parent, x, y, graphic)
         self.nu = nu
         self.blocks_movement = True
+        self.energy = 0
 
     # TODO will bump enemies and then teleport to the next step
     # noinspection PyTypeChecker
@@ -80,6 +81,7 @@ class Monster(Actor):
         self.parent.entities.append(NuPile(self.parent, self.x, self.y, 5))
 
     def take_turn(self) -> None:
+        self.energy += 100
         if self.target_tiles:
             monster_ai.move_to_target(self)
         elif [self.parent.player.x, self.parent.player.y] in self.viewshed:
@@ -87,6 +89,7 @@ class Monster(Actor):
                 monster_ai.rook_target(self)
             else:
                 monster_ai.bishop_target(self)
+
 
 class NuPile(Entity):
     def __init__(self, parent: Engine, x: int, y: int, amt: int):
