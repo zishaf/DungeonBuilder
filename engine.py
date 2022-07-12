@@ -93,7 +93,7 @@ class Engine:
         # can only move to walkable tiles
         if self.game_map.tiles[dest_x, dest_y]["walkable"]:
             # check if entity has teleportitis: 1/100 of teleporting them.  nu-free!!
-            if 'teleportitis' in entity.flags and random.random() <= .01:
+            if 'teleportitis' in entity.flags and random.random() <= entity.flags['teleportitis']:
                 self.teleport_entity(entity)
 
             # otherwise move entity and take nu if player

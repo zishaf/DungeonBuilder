@@ -19,7 +19,7 @@ class Entity:
         self.graphic = graphic
         self.blocks_movement = False
         self.nu = None
-        self.flags = []
+        self.flags = {}
 
     def on_collide(self, collider: Entity):
         pass
