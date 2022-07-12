@@ -55,13 +55,15 @@ class Actor(Entity):
         raise NotImplementedError
 
 
-# TODO implement on_collide, die
 class Player(Actor):
     def __init__(self, parent: Engine, x: int = None, y: int = None, nu: int = 300):
         super().__init__(parent, (64, colors.ORANGE, colors.DARK_GREY), x, y, nu)
 
     def on_collide(self, collider: Entity):
         self.nu -= 5
+
+    def die(self):
+        raise NotImplementedError
 
 
 class Monster(Actor):
@@ -78,7 +80,8 @@ class Monster(Actor):
 
     def die(self):
         self.parent.entities.remove(self)
-        self.parent.entities.append(NuPile(self.parent, self.x, self.y, 5))
+        self.parent.entities.append(NuPile(self.parent, self.x, self.y, 10))
+        self.parent.log.add_message('Monster destroyed!')
 
     def take_turn(self) -> None:
         self.energy += 100
