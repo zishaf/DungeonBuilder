@@ -3,7 +3,7 @@ from typing import Optional, Union
 import actions
 import architect
 import colors
-import engine
+
 import entity_maker
 import render_functions
 import settings
@@ -11,12 +11,11 @@ import tcod.console
 import tcod.event
 import numpy as np
 import os
-import time
 from operator import attrgetter
 
 import tile_types
 from test_functions import make_egg_map, make_cavern_map, make_winding_map
-from god_bargains import see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls
+from god_bargains import see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls, claustrophobia
 from engine import Engine
 from main import WIDTH, HEIGHT, MAP_Y_OFFSET
 
@@ -173,6 +172,9 @@ class MapBuildingHandler(BaseEventHandler):
         elif key == tcod.event.K_TAB:
             architect.connect_adjacent_segments(self.engine.game_map)
 
+        elif key == tcod.event.K_j:
+            architect.fast_corr(self.engine.game_map, 20)
+
         # checks if the key pressed matches a command's hotkey, and performs it if so
         for act in actions.ACTIONS.values():
             if key == act.hotkey:
@@ -284,7 +286,7 @@ class GodBargainHandler(BaseEventHandler):
 
     def __init__(self, eng: Engine):
         super().__init__(eng)
-        self.bargains = [see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls]
+        self.bargains = [see_through_walls, one_eyed, see_stairs, teleportitis, leave_walls, claustrophobia]
 
     def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
 
@@ -306,7 +308,7 @@ class GodBargainHandler(BaseEventHandler):
             if NUMBER_KEYS[key] < len(self.bargains):
                 bargain = self.bargains[NUMBER_KEYS[key]]
                 self.engine.player.nu -= bargain.cost
-                self.engine.player.flags.append(bargain.flag)
+                self.engine.player.flags[bargain.flag] = None if not bargain.val else bargain.val
                 if bargain.func:
                     bargain.func(self.engine)
                 return PlayerMoverHandler(self.engine)
@@ -318,12 +320,6 @@ class GodBargainHandler(BaseEventHandler):
 
 
 class PlayerMoverHandler(BaseEventHandler):
-    def handle_events(self, event: tcod.event.Event) -> "BaseEventHandler":
-        if self.engine.player_dead():
-            return GameOverEventHandler(self.engine)
-        else:
-            return super().handle_events(event)
-
     def ev_keydown(self, event: tcod.event.KeyDown) -> "BaseEventHandler":
         key = event.sym
 
@@ -332,6 +328,8 @@ class PlayerMoverHandler(BaseEventHandler):
 
             self.engine.move_entity(self.engine.player.x + dx, self.engine.player.y + dy, self.engine.player)
             self.engine.end_player_turn()
+            if self.engine.player_dead():
+                return GameOverEventHandler(self.engine)
             return tick(self)
 
         elif key == tcod.event.K_SPACE:

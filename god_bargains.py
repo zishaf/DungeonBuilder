@@ -11,4 +11,5 @@ one_eyed = GodBargain("Lose an eye .(", -100, 'one_eyed')
 see_stairs = GodBargain("Sense the exit", 100, 'see_stairs', func=Engine.reveal_stairs)
 teleportitis = GodBargain("Randomly teleport", -50, 'teleportitis', val=.01)
 leave_walls = GodBargain("Walls form behind you", -200, 'leave_walls')
-claustrophobia = GodBargain("You imagine walls around you", -100, 'claustrophobia', val=(1, []))
+claustrophobia = GodBargain("You imagine walls around you", -100, 'claustrophobia', func=Engine.init_claustrophobia,
+                            val=(1, []))

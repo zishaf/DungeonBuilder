@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import random
 
+import numba.core.types
 import numpy
 import numpy as np
 import tile_types
@@ -242,6 +243,27 @@ def smooth_it_out(floor: Feature, smoothness: int = 5):
     bools_to_tiles(floor, new_floor)
 
 
+def fast_corr(floor: Feature, length: int):
+    # make a list of all possible starting points and shuffle it
+    wall_coords = floor.coords_of_tile_type(tile_types.wall)
+    starts = []
+    for xy in wall_coords:
+        if floor.in_bounds(xy[0], xy[1]) and floor.cardinal_walls(xy[0], xy[1]) == 3:
+            starts.append((xy[0], xy[1]))
+    random.shuffle(starts)
+
+    a = tiles_to_bools(floor)
+
+    # try to tunnel a corridor with length-1 since x,y will be the first tile
+    while starts:
+        x, y = starts.pop()
+        if jit_corr(a, length - 1, x, y):
+            bools_to_tiles(floor, a)
+            return True
+
+    return False
+
+
 @njit
 def fast_smooth(a: numpy.ndarray, b):
     new_a = numpy.zeros(shape=a.shape, dtype='b1')
@@ -253,6 +275,36 @@ def fast_smooth(a: numpy.ndarray, b):
             else:
                 new_a[x, y] = 0
     return new_a
+
+
+@njit
+def jit_corr(a: numpy.ndarray, length: int, x: int, y: int):
+    # mark our tile
+    a[x, y] = 1
+    w, h = a.shape
+
+    # return true if we've reached target length
+    if length == 0:
+        return True
+
+    # add all neighbors to destinations, shuffle the list to build in random direction
+    dests = np.array([(x-1, y), (x+1, y), (x, y-1), (x, y+1)])
+    random.shuffle(dests)
+
+    # check all destinations and return true if they reach their conclusion, else reset the tile
+    for destx, desty in dests:
+        if 0 < x < w - 1 and 0 < y < h - 1:
+            if a[x, y] == 0:
+                if np.count_nonzero(np.array([a[x-1, y], a[x+1, y], a[x, y-1], a[x, y+1]])) == 1:
+                    if jit_corr(a, length - 1, destx, desty):
+                        return True
+                    else:
+                        a[destx, desty] = 0
+
+    # reset the starting tile if all fails and return false
+    a[x, y] = 0
+
+    return False
 
 
 def tiles_to_bools(feature: Feature) -> np.ndarray:

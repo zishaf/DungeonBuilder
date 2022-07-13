@@ -1,17 +1,20 @@
 import random
+import time
+import numpy as np
+import tcod
+from tcod.map import compute_fov
 
+import colors
 import entity_maker
 import tile_types
 import architect
 from architect import Floor, Feature
-import tcod
 import test_functions
 from message_log import MessageLog
 from entity_maker import Entity, Player
-from tcod.map import compute_fov
-import numpy as np
-import colors
-import time
+
+
+
 
 # TODO add player, nu, and flickering halls
 
@@ -121,7 +124,39 @@ class Engine:
         # return false if the entity didn't move to destination (teleport too)
         return False
 
+    def init_claustrophobia(self):
+        coords = list(np.argwhere(self.game_map.visible))
+        random.shuffle(coords)
+        count = 0
+        # check it's less than the first element of cluastrophobia: how many walls
+        while coords and count < self.player.flags['claustrophobia'][0]:
+            xy = coords.pop()
+            if self.game_map.tiles[xy[0], xy[1]] == tile_types.floor:
+                count += 1
+                # insert the new wall coordinate at the beginning
+                self.player.flags['claustrophobia'][1].insert(0, (xy[0], xy[1]))
+                self.game_map.tiles[xy[0], xy[1]] = tile_types.wall
+
     def end_player_turn(self):
+        # if claustrophobic randomly set a number of visible floors to walls and remove walls previously set
+        if 'claustrophobia' in self.player.flags:
+            coords = list(np.argwhere(self.game_map.visible))
+            random.shuffle(coords)
+            count = 0
+            # check it's less than the first element of cluastrophobia: how many walls
+            while coords and count < self.player.flags['claustrophobia'][0]:
+                xy = coords.pop()
+                if self.game_map.tiles[xy[0], xy[1]] == tile_types.floor:
+                    count += 1
+
+                    # remove last element from old walls and make it a floor
+                    old_x, old_y = self.player.flags['claustrophobia'][1].pop()
+                    self.game_map.tiles[old_x, old_y] = tile_types.floor
+
+                    # insert the new wall coordinate at the beginning
+                    self.player.flags['claustrophobia'][1].insert(0, (xy[0], xy[1]))
+                    self.game_map.tiles[xy[0], xy[1]] = tile_types.wall
+
         # check for collision with other entities
         for entity in self.entities:
             if (self.player.x, self.player.y) == (entity.x, entity.y):
