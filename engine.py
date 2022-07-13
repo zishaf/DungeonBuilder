@@ -124,18 +124,21 @@ class Engine:
         # return false if the entity didn't move to destination (teleport too)
         return False
 
+    # TODO check if here aren't enough walls made by claustrophobia because of low visibility, always allow one floor
     def init_claustrophobia(self):
         coords = list(np.argwhere(self.game_map.visible))
         random.shuffle(coords)
-        count = 0
+        if 'claustrophobia' in self.player.flags:
+            self.player.flags['claustrophobia'][0] = self.player.flags['claustrophobia'][0] + 1
+
         # check it's less than the first element of cluastrophobia: how many walls
-        while coords and count < self.player.flags['claustrophobia'][0]:
+        while coords:
             xy = coords.pop()
             if self.game_map.tiles[xy[0], xy[1]] == tile_types.floor:
-                count += 1
                 # insert the new wall coordinate at the beginning
                 self.player.flags['claustrophobia'][1].insert(0, (xy[0], xy[1]))
                 self.game_map.tiles[xy[0], xy[1]] = tile_types.wall
+                break
 
     def end_player_turn(self):
         # if claustrophobic randomly set a number of visible floors to walls and remove walls previously set

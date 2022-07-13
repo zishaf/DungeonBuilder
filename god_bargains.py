@@ -12,4 +12,4 @@ see_stairs = GodBargain("Sense the exit", 100, 'see_stairs', func=Engine.reveal_
 teleportitis = GodBargain("Randomly teleport", -50, 'teleportitis', val=.01)
 leave_walls = GodBargain("Walls form behind you", -200, 'leave_walls')
 claustrophobia = GodBargain("You imagine walls around you", -100, 'claustrophobia', func=Engine.init_claustrophobia,
-                            val=(1, []))
+                            val=[0, []])

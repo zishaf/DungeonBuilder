@@ -308,9 +308,11 @@ class GodBargainHandler(BaseEventHandler):
             if NUMBER_KEYS[key] < len(self.bargains):
                 bargain = self.bargains[NUMBER_KEYS[key]]
                 self.engine.player.nu -= bargain.cost
+
                 self.engine.player.flags[bargain.flag] = None if not bargain.val else bargain.val
                 if bargain.func:
                     bargain.func(self.engine)
+
                 return PlayerMoverHandler(self.engine)
 
         elif key == tcod.event.K_ESCAPE:
