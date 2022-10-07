@@ -58,7 +58,7 @@ def move_to_target(monster: Monster):
             return
 
         for entity in monster.parent.entities:
-            if x == entity.x and y == entity.y:
+            if x == entity.x and y == entity.y and entity.blocks_movement:
                 monster.parent.log.add_message(random.choice(words) + ' (-5 nu)')
                 entity.on_collide(monster)
                 monster.target_tiles = []
